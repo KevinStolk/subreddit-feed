@@ -1,0 +1,71 @@
+/* roboto-regular - latin */
+@font-face {
+  font-family: "Roboto";
+  font-style: normal;
+  font-weight: 400;
+  src: local(""),
+    url("../public/fonts/roboto-v29-latin-regular.woff2") format("woff2"),
+    /* Chrome 26+, Opera 23+, Firefox 39+ */
+      url("../public/fonts/roboto-v29-latin-regular.woff") format("woff"); /* Chrome 6+, Firefox 3.6+, IE 9+, Safari 5.1+ */
+}
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: "Roboto";
+}
+
+.load-text {
+  font-size: 1.25rem;
+  color: rgb(59, 130, 246);
+  font-weight: bold;
+  margin-top: 0.5rem;
+}
+
+.overflow-hidden {
+  overflow: hidden;
+}
+
+form {
+  display: inline;
+  width: 100%;
+}
+
+.MuiOutlinedInput-root:hover {
+  border-top-color: blue;
+}
+
+.input-container {
+  display: flex;
+  color: #ffffff;
+  font-size: 32px;
+  font-weight: 500px;
+  text-transform: uppercase;
+  background: none;
+  outline: none;
+  border: none;
+  appearance: none;
+  justify-content: center;
+  margin-top: .5rem
+}
+
+.progress {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+  position: fixed;
+  z-index: auto;
+  inset: 0;
+  background: #121212;
+  opacity: 50%;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+}
+
+.error {
+  margin-top: 1rem;
+  color: red;
+  text-align: center;
+}
