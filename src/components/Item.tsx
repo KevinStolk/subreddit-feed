@@ -6,7 +6,6 @@ import {
   Typography,
 } from "@material-ui/core";
 import { makeStyles } from "@material-ui/core/styles";
-import React from "react";
 
 const useStyles = makeStyles({
   root: {
@@ -23,13 +22,15 @@ const useStyles = makeStyles({
   },
 });
 
-function Item(props) {
+
+export default function Item(props: any) {
   const classes = useStyles();
+
+  console.log(props.item)
 
   const videoLink = props.item.secure_media_embed.media_domain_url;
   let image_src = props.item.url_overridden_by_dest;
   let fallback_url = props.item.url;
-
 
   return (
     <Card className={classes.root}>
@@ -42,6 +43,9 @@ function Item(props) {
           <Typography gutterBottom component="h1">
             {props.item.title}
           </Typography>
+          <Typography gutterBottom component="p">
+            {props.item.selftext}
+          </Typography>
           {videoLink !== undefined ? (
             <CardMedia
               scrolling="no"
@@ -50,12 +54,14 @@ function Item(props) {
               src={videoLink}
               title="Video/Gif"
               component="iframe"
+              allowFullScreen
             />
           ) : (
             <CardMedia
               className={classes.media}
               component="img"
               src={image_src === undefined ? fallback_url : image_src}
+              alt=''
             />
           )}
         </CardContent>
@@ -63,5 +69,3 @@ function Item(props) {
     </Card>
   );
 }
-
-export default Item;
