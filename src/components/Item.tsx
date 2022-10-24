@@ -7,6 +7,8 @@ import {
 } from "@material-ui/core";
 import { makeStyles } from "@material-ui/core/styles";
 
+import { IItemsProps } from '../App'
+
 const useStyles = makeStyles({
   root: {
     maxWidth: 345,
@@ -23,28 +25,26 @@ const useStyles = makeStyles({
 });
 
 
-export default function Item(props: any) {
+export default function Item(props: IItemsProps) {
   const classes = useStyles();
 
-  console.log(props.item)
-
-  const videoLink = props.item.secure_media_embed.media_domain_url;
-  let image_src = props.item.url_overridden_by_dest;
-  let fallback_url = props.item.url;
+  const videoLink = props.data.secure_media_embed.media_domain_url;
+  let image_src = props.data.url_overridden_by_dest;
+  let fallback_url = props.data.url;
 
   return (
     <Card className={classes.root}>
       <CardActionArea
-        href={"https://reddit.com" + props.item.permalink}
+        href={"https://reddit.com" + props.data.permalink}
         target="_blank"
         rel="noreferrer"
       >
         <CardContent>
           <Typography gutterBottom component="h1">
-            {props.item.title}
+            {props.data.title}
           </Typography>
           <Typography gutterBottom component="p">
-            {props.item.selftext}
+            {props.data.selftext}
           </Typography>
           {videoLink !== undefined ? (
             <CardMedia

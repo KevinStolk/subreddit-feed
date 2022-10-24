@@ -6,13 +6,27 @@ import {
   SpeedDialIcon,
   OutlinedInput,
 } from '@mui/material'
-import { useState } from 'react'
+import { ChangeEvent, useState } from 'react'
 import Item from './components/Item'
 import InfiniteScroll from 'react-infinite-scroll-component'
 import axios from 'axios'
 
+export interface IItemsProps {
+  data: {
+    id: string,
+    url_overridden_by_dest: string,
+    url: string,
+    title: string,
+    permalink: string,
+    selftext: string,
+    secure_media_embed: {
+      media_domain_url: string,
+    }
+  }
+}
+
 function App() {
-  const [items, setItems] = useState<[]>([])
+  const [items, setItems] = useState<IItemsProps[]>([])
   const [subreddit, setSubreddit] = useState<string>('')
   const [loading, setLoading] = useState<boolean>(false)
   const [error, setError] = useState<string>('')
@@ -35,6 +49,7 @@ function App() {
         setLimit(limit + 25)
         setLoading(false)
         setError('')
+        console.log(res.data.data.children)
         setItems(res.data.data.children)
       }
     }).catch((err) => {
@@ -63,7 +78,7 @@ function App() {
 
   let scrollElement = document.scrollingElement || document.body
 
-  const handleSubmit = (e: any) => {
+  const handleSubmit = (e: ChangeEvent<HTMLFormElement>) => {
     e.preventDefault()
     loadSub()
   }
@@ -106,7 +121,7 @@ function App() {
         }
       >
         {items !== null
-          ? items.map((item: any) => <Item key={item.data.id} item={item.data} />)
+          ? items.map((item: IItemsProps) => <Item key={item.data.id} data={item.data} />)
           : ''}
       </InfiniteScroll>
 
