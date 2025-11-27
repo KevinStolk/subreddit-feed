@@ -1,19 +1,24 @@
 /* roboto-regular - latin */
 @font-face {
-  font-family: 'Roboto';
+  font-family: "Roboto";
   font-style: normal;
   font-weight: 400;
-  src: local(''),
-    url('../public/fonts/roboto-v29-latin-regular.woff2') format('woff2'),
+  src: local(""),
+    url("../public/fonts/roboto-v29-latin-regular.woff2") format("woff2"),
     /* Chrome 26+, Opera 23+, Firefox 39+ */
-      url('../public/fonts/roboto-v29-latin-regular.woff') format('woff'); /* Chrome 6+, Firefox 3.6+, IE 9+, Safari 5.1+ */
+      url("../public/fonts/roboto-v29-latin-regular.woff") format("woff"); /* Chrome 6+, Firefox 3.6+, IE 9+, Safari 5.1+ */
 }
 
 * {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
-  font-family: 'Roboto';
+  font-family: "Roboto", serif;
+}
+
+body.dark-mode {
+  background-color: #121212;
+  color: #ffffff !important;
 }
 
 .load-text {
@@ -27,20 +32,52 @@
   overflow: hidden;
 }
 
-form {
-  display: inline;
+.form {
   width: 100%;
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  align-items: center;
+  padding: 1rem 0 1rem 0;
 }
 
 .MuiOutlinedInput-root:hover {
   border-top-color: blue;
 }
 
+.MuiCardContent-root {
+  height: 100% !important;
+}
+
+.MuiDialogContent-root {
+  margin: 0 auto !important;
+}
+
+.MuiCardMedia-root {
+  height: 100% !important;
+}
+
+.MuiButtonBase-root  {
+  max-height: 100% !important;
+}
+.MuiCardActionArea-root {
+  height: 100% !important;
+}
+
+.MuiSpeedDial-fab {
+  width: 56px !important;
+  height: 56px !important;
+}
+
+.MuiCardMedia-root {
+  padding: 0 !important;
+}
+
 .input-container {
   display: flex;
   color: #ffffff;
   font-size: 32px;
-  font-weight: 500px;
+  font-weight: 500;
   text-transform: uppercase;
   background: none;
   outline: none;
@@ -69,4 +106,60 @@ form {
   margin-top: 1rem;
   color: red;
   text-align: center;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr); /* 3 equal columns */
+  gap: 1rem;
+}
+
+.MuiDialog-paperFullWidth {
+  width: 100% !important;
+}
+
+.darkModeText  {
+  color: #ffffff !important;
+  border: 1px solid #ffffff !important;
+  border-radius: 4px;
+}
+
+.MuiOutlinedInput-root:hover {
+  border: 1px solid #ffffff !important;
+}
+
+.grid-one {
+  --grid-columns: 1;
+}
+
+.grid-two {
+  --grid-columns: 2;
+}
+
+.grid-three {
+  --grid-columns: 3;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(var(--grid-columns, 2), 1fr);
+  gap: 16px;
+  padding: .5rem;
+}
+
+@media (max-width: 768px) {
+  .grid {
+    grid-template-columns: repeat(1, 1fr);
+  }
+  .grid-toggle-button {
+    display: none !important;
+  }
+}
+
+
+@media (max-width: 600px) {
+  .form {
+    flex-direction: column;
+    padding: 1rem;
+  }
 }
