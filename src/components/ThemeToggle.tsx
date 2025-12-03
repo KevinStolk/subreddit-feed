@@ -1,5 +1,5 @@
-import {IconButton} from "@material-ui/core";
-import {Brightness4 as MoonIcon, Brightness7 as SunIcon} from "@material-ui/icons";
+import IconButton from "@mui/material/IconButton";
+import {Brightness4 as MoonIcon, Brightness7 as SunIcon} from "@mui/icons-material";
 
 interface ThemeToggleProps {
     darkMode: boolean;

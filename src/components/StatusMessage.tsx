@@ -1,6 +1,5 @@
 import {Alert, Box} from "@mui/material";
-import ErrorOutlineIcon from "@material-ui/icons/ErrorOutline";
-import SentimentDissatisfiedIcon from "@material-ui/icons/SentimentDissatisfied";
+import {ErrorOutline, SentimentDissatisfied} from "@mui/icons-material";
 
 interface StatusMessageProps {
     type: "error" | "empty";
@@ -11,7 +10,7 @@ const StatusMessage = ({type, message}: StatusMessageProps) => {
     if (type === "error") {
         return (
             <Box display="flex" justifyContent="center" mt={3}>
-                <Alert severity="error" icon={<ErrorOutlineIcon/>}>
+                <Alert severity="error" icon={<ErrorOutline/>}>
                     {message}
                 </Alert>
             </Box>
@@ -27,7 +26,7 @@ const StatusMessage = ({type, message}: StatusMessageProps) => {
                 justifyContent="center"
                 mt={5}
             >
-                <SentimentDissatisfiedIcon fontSize="large" color="error"/>
+                <SentimentDissatisfied fontSize="large" color="error"/>
                 <p>{message}</p>
             </Box>
         );

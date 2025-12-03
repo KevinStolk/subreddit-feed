@@ -1,4 +1,4 @@
-import {ArrowDownward, ArrowUpward} from "@material-ui/icons";
+import {ArrowDownward, ArrowUpward} from "@mui/icons-material";
 import {
     CircularProgress,
     SpeedDial,
@@ -25,10 +25,7 @@ import InfiniteScroll from "react-infinite-scroll-component";
 import axios from "axios";
 import {createTheme, ThemeProvider} from '@mui/material/styles';
 import CssBaseline from "@mui/material/CssBaseline";
-import ThemeToggle from "./components/ThemeToggle";
-import GridToggleButton from "./components/GridToggleButton";
-import RememberToggle from "./components/RememberToggle";
-import HistoryToggle from "./components/HistoryToggle";
+import SettingsMenu from "./components/SettingsMenu";
 import StatusMessage from "./components/StatusMessage";
 import PostSkeleton from "./components/PostSkeleton";
 
@@ -241,7 +238,7 @@ function App() {
         setOpenConfirm(false);
     };
 
-    const theme = useMemo(
+    const   theme = useMemo(
         () =>
             createTheme({
                 palette: {
@@ -261,12 +258,22 @@ function App() {
         <ThemeProvider theme={theme}>
             <CssBaseline/>
             <div className="App">
-                <div style={{display: "flex", gap: ".5rem", alignItems: "center"}}>
-                    <ThemeToggle darkMode={darkMode} toggleDarkMode={toggleDarkMode}/>
-                    <GridToggleButton/>
-                    <RememberToggle onChange={setRememberLast}/>
-                    <HistoryToggle saveHistory={saveHistory} onChange={setSaveHistory}/>
+                <div style={{display: "flex", alignItems: "center", justifyContent: "end", padding: "1rem"}}>
+                    <SettingsMenu
+                        darkMode={darkMode}
+                        toggleDarkMode={toggleDarkMode}
+                        rememberLast={rememberLast}
+                        setRememberLast={setRememberLast}
+                        saveHistory={saveHistory}
+                        setSaveHistory={setSaveHistory}
+                    />
                 </div>
+                {/*<div style={{display: "flex", gap: ".5rem", alignItems: "center"}}>*/}
+                    {/*<ThemeToggle darkMode={darkMode} toggleDarkMode={toggleDarkMode}/>*/}
+                    {/*<GridToggleButton/>*/}
+                    {/*<RememberToggle onChange={setRememberLast}/>*/}
+                    {/*<HistoryToggle saveHistory={saveHistory} onChange={setSaveHistory}/>*/}
+                {/*</div>*/}
                 <form className={"form"} onSubmit={handleSubmit}>
                     <TextField
                         inputRef={inputRef}
@@ -275,7 +282,6 @@ function App() {
                         onChange={handleInputChange}
                         label="Subreddit"
                         InputProps={{
-
                             endAdornment: (
                                 <InputAdornment position="end">
                                     {loading && <CircularProgress size={20}/>}
@@ -283,11 +289,11 @@ function App() {
                             )
                         }}
                     />
-                    <Button type="submit" variant="contained" color="primary" disabled={loading}>
+                    <Button  type="submit" variant="contained" color="primary" disabled={loading}>
                         {loading ? "Searching..." : "Search"}
                     </Button>
 
-                    <Box sx={{display: "flex", gap: ".5rem", alignItems: "center", flexWrap: "wrap"}}>
+                    <div style={{display: "flex", gap: ".5rem", alignItems: "center", flexWrap: "wrap"}}>
                     <FormControl variant="outlined" size="small">
                         <InputLabel>Sort</InputLabel>
                         <Select
@@ -301,7 +307,7 @@ function App() {
                             <MenuItem value="rising">Rising</MenuItem>
                         </Select>
                     </FormControl>
-                    </Box>
+                    </div>
                 </form>
 
                 {searchHistory.length > 0 && (
@@ -363,7 +369,7 @@ function App() {
 
                 {/* Empty state handling */}
 
-                {!loading && !error && items.length === 0 && subreddit && (
+                {!loading || !error || items.length === 0 || subreddit || (
                     <StatusMessage type="empty" message={`No posts found in r/${subreddit}`}/>
                 )}
 

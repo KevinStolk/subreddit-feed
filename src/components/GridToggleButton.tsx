@@ -1,9 +1,11 @@
-import { IconButton, Menu, MenuItem } from "@material-ui/core";
+import Menu from "@mui/material/Menu";
+import IconButton from "@mui/material/IconButton"
+import MenuItem from "@mui/material/MenuItem"
 import {
   ViewArray as OneColumnIcon,
   ViewWeek as TwoColumnsIcon,
   ViewComfy as ThreeColumnsIcon
-} from "@material-ui/icons";
+} from "@mui/icons-material";
 import { useEffect, useState } from "react";
 
 type GridLayout = "one" | "two" | "three";

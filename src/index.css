@@ -19,11 +19,6 @@ body {
     transition: background-color 0.4s ease, color 0.4s ease;
 }
 
-body.dark-mode {
-    background-color: #121212;
-    color: #ffffff !important;
-}
-
 .container {
     margin-left: auto;
     margin-right: auto;
@@ -50,10 +45,6 @@ body.dark-mode {
     justify-content: center;
     align-items: center;
     padding: 1rem 0 1rem 0;
-}
-
-.MuiOutlinedInput-root:hover {
-    border-top-color: blue;
 }
 
 .MuiCardContent-root {
@@ -128,10 +119,6 @@ body.dark-mode {
     color: #ffffff !important;
     border: 1px solid #ffffff !important;
     border-radius: 4px;
-}
-
-.MuiOutlinedInput-root:hover {
-    border: 1px solid #ffffff !important;
 }
 
 body.grid-one .container {
