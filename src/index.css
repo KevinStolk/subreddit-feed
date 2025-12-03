@@ -163,6 +163,14 @@ body.grid-two .container {
     margin: 0 auto
 }
 
+.opacity-0 {
+    opacity: 0;
+}
+
+.opacity-full {
+    opacity: 100% !important;
+}
+
 @media (max-width: 768px) {
     .grid {
         grid-template-columns: repeat(1, 1fr);

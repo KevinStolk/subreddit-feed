@@ -369,13 +369,14 @@ export default function Item(props: IItemsProps) {
                 component="img"
                 src={item.src}
                 alt={item.caption}
-                style={style}
+                style={{opacity: 0, transitionDuration: "700ms", transitionProperty: "opacity", borderRadius: "0.5rem"}}
                 onError={(e) => {
                     const target = e.target as HTMLImageElement;
                     target.onerror = null;
-                    target.src = '';
-                    target.style.display = 'none';
+                    target.src = 'https://pngimg.com/uploads/question_mark/question_mark_PNG1.png';
+                    target.width = 155;
                 }}
+                onLoad={(e) => e.currentTarget.classList.add("opacity-full") }
             />
         );
     };
@@ -394,7 +395,6 @@ export default function Item(props: IItemsProps) {
                     target="_blank"
                     rel="noreferrer"
                 >
-
                     <CardContent style={{paddingBottom: "0.75rem"}}>
                         <div style={{
                             display: "flex",
@@ -404,23 +404,12 @@ export default function Item(props: IItemsProps) {
                             opacity: 0.8,
                             fontSize: "0.85rem"
                         }}>
-
                             <span style={{opacity: 0.8}}>{props.data?.ups}{props.data?.ups > "1000" ? "k" : ""}</span>
-                            <span style={{fontWeight: 600}}>
-        r/{props.data?.subreddit}
-    </span>
-
+                            <span style={{fontWeight: 600}}>r/{props.data?.subreddit}</span>
                             <span style={{opacity: 0.6}}>•</span>
-
-                            <span style={{opacity: 0.8}}>
-        u/{props.data?.author}
-    </span>
-
+                            <span style={{opacity: 0.8}}>u/{props.data?.author}</span>
                             <span style={{opacity: 0.6}}>•</span>
-
-                            <span style={{opacity: 0.8}}>
-        {new Date(props.data?.created_utc * 1000).toLocaleDateString()}
-    </span>
+                            <span style={{opacity: 0.8}}>{new Date(props.data?.created_utc * 1000).toLocaleDateString()}</span>
 
                         </div>
 
@@ -449,6 +438,7 @@ export default function Item(props: IItemsProps) {
                                         })}
                                     </div>
                                 ))}
+
                                 {mediaItems.length > 0 && (
                                     <div className={classes.moreImagesIndicator}>
                                         +{mediaItems.length} in total
@@ -462,12 +452,9 @@ export default function Item(props: IItemsProps) {
                                     height: '100%',
                                     cursor: mediaItems.length > 0 ? 'pointer' : 'default'
                                 })}
-
-                                <span
-                                    style={{opacity: 0.6}}>{props.data?.num_comments} comment{props.data?.num_comments > "1" || props.data?.num_comments === "0" ? "s" : ""}</span>
+                                <span style={{opacity: 0.6}}>{props.data?.num_comments} comment{props.data?.num_comments > "1" || props.data?.num_comments === "0" ? "s" : ""}</span>
                             </>
                         )}
-
                     </CardContent>
                 </CardActionArea>
             </div>
@@ -482,6 +469,7 @@ export default function Item(props: IItemsProps) {
                     <Typography variant="subtitle1">
                         {mediaItems[currentMediaIndex].caption}
                     </Typography>
+                    <a href={"https://reddit.com" + props.data.permalink} target="_blank" rel="noreferrer">Link to post</a>
                     <div className={classes.carouselContainer}>
                         {mediaItems[currentMediaIndex].type === 'video' ? (
                             <div className={classes.videoContainer}>
@@ -505,6 +493,11 @@ export default function Item(props: IItemsProps) {
                                 src={mediaItems[currentMediaIndex].src}
                                 alt={mediaItems[currentMediaIndex].caption}
                                 className={classes.dialogMedia}
+                                onError={(e) => {
+                                    const target = e.target as HTMLImageElement;
+                                    target.onerror = null;
+                                    target.src = 'https://pngimg.com/uploads/question_mark/question_mark_PNG1.png';
+                                }}
                             />
                         )}
 
