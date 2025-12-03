@@ -19,122 +19,155 @@ const useStyles = makeStyles((theme) => ({
     root: {
         width: "100%",
         height: "100%",
-        padding: "0",
-        overflow: 'hidden',
-        backgroundColor: theme.palette.background.paper, // auto adapts
-        color: theme.palette.text.primary, // auto adapts
+        padding: 0,
+        overflow: "hidden",
+        backgroundColor: theme.palette.background.paper,
+        color: theme.palette.text.primary,
+        borderRadius: 12,
+        transition: "transform 0.15s ease, box-shadow 0.15s ease",
+        boxShadow:
+            theme.palette.background.default === "dark"
+                ? "0px 1px 3px rgba(0,0,0,0.5)"
+                : "0px 1px 3px rgba(0,0,0,0.15)",
+        "&:hover": {
+            transform: "translateY(-3px)",
+            boxShadow:
+                theme.palette.background.default === "dark"
+                    ? "0px 4px 10px rgba(0,0,0,0.6)"
+                    : "0px 4px 12px rgba(0,0,0,0.2)",
+        },
     },
+
     media: {
-        border: "none",
-        outline: "none",
         width: "100%",
         height: "100%",
         maxHeight: "400px",
         objectFit: "contain",
-        cursor: 'pointer'
+        cursor: "pointer",
+        borderRadius: 8,
     },
+
     galleryContainer: {
-        display: 'flex',
-        flexWrap: 'wrap',
-        gap: '2px',
-        position: 'relative'
+        display: "flex",
+        flexWrap: "wrap",
+        gap: "2px",
+        position: "relative",
+        borderRadius: 8,
+        overflow: "hidden",
     },
+
     galleryImage: {
         flexGrow: 1,
-        minWidth: 'calc(50% - 1px)',
-        height: '200px',
-        objectFit: 'cover',
-        cursor: 'pointer',
-        transition: 'transform 0.2s',
-        '&:hover': {
-            transform: 'scale(1.02)'
-        }
+        minWidth: "calc(50% - 1px)",
+        height: "200px",
+        objectFit: "cover",
+        cursor: "pointer",
+        transition: "transform 0.2s",
+        "&:hover": {
+            transform: "scale(1.02)",
+        },
     },
+
     moreImagesIndicator: {
-        position: 'absolute',
-        bottom: '8px',
-        right: '8px',
-        backgroundColor: 'rgba(0,0,0,0.7)',
-        color: 'white',
-        padding: '4px 8px',
-        borderRadius: '4px',
-        fontSize: '0.8rem',
+        position: "absolute",
+        bottom: 8,
+        right: 8,
+        backgroundColor: "rgba(0, 0, 0, 0.65)",
+        color: "white",
+        padding: "4px 8px",
+        borderRadius: 6,
+        fontSize: "0.75rem",
+        backdropFilter: "blur(3px)",
     },
+
     placeholder: {
-        backgroundColor: theme.palette.background.default, // auto adapts
-        height: '200px',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        flexDirection: 'column'
+        backgroundColor: theme.palette.background.default,
+        height: "200px",
+        borderRadius: 8,
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        flexDirection: "column",
     },
+
     carouselContainer: {
-        position: 'relative',
-        height: '70vh',
-        width: '100%',
-        overflow: 'hidden'
+        position: "relative",
+        height: "70vh",
+        width: "100%",
+        overflow: "hidden",
     },
+
     dialogMedia: {
-        maxWidth: '100%',
-        maxHeight: '100%',
-        objectFit: 'contain'
+        maxWidth: "100%",
+        maxHeight: "100%",
+        objectFit: "contain",
     },
+
     carouselButton: {
-        position: 'absolute',
-        top: '50%',
-        transform: 'translateY(-50%)',
-        backgroundColor: 'rgba(0,0,0,0.5)',
-        color: 'white',
+        position: "absolute",
+        top: "50%",
+        transform: "translateY(-50%)",
+        backgroundColor: "rgba(0, 0, 0, 0.5)",
+        color: "white",
         zIndex: 2,
-        '&:hover': {
-            backgroundColor: 'rgba(0,0,0,0.7)'
-        }
+        "&:hover": {
+            backgroundColor: "rgba(0,0,0,0.7)",
+        },
     },
+
     prevButton: {
-        left: theme.spacing(2)
+        left: theme.spacing(2),
     },
+
     nextButton: {
-        right: theme.spacing(2)
+        right: theme.spacing(2),
     },
+
     videoContainer: {
-        position: 'relative',
-        paddingBottom: '56.25%',
-        height: '100%',
-        overflow: 'hidden',
-        background: '#000'
+        position: "relative",
+        paddingBottom: "56.25%",
+        height: "100%",
+        overflow: "hidden",
+        background: "#000",
+        borderRadius: 8,
     },
+
     videoIframe: {
-        position: 'absolute',
+        position: "absolute",
         top: 0,
         left: 0,
-        width: '100%',
-        height: '100%',
-        border: 'none'
+        width: "100%",
+        height: "100%",
+        border: "none",
     },
+
     gifPlayer: {
-        width: '100%',
-        height: '100%',
-        objectFit: 'contain',
-        cursor: 'pointer'
+        width: "100%",
+        height: "100%",
+        objectFit: "contain",
+        cursor: "pointer",
+        borderRadius: 8,
     },
+
     gifBadge: {
-        position: 'absolute',
-        bottom: '8px',
-        right: '8px',
-        backgroundColor: 'rgba(0,0,0,0.7)',
-        color: 'white',
-        padding: '4px 8px',
-        borderRadius: '4px',
-        fontSize: '0.8rem',
+        position: "absolute",
+        bottom: 8,
+        right: 8,
+        backgroundColor: "rgba(0, 0, 0, 0.7)",
+        color: "white",
+        padding: "4px 8px",
+        borderRadius: 6,
+        fontSize: "0.75rem",
     },
+
     gifControls: {
-        position: 'absolute',
-        bottom: '16px',
-        left: '16px',
-        backgroundColor: 'rgba(0,0,0,0.5)',
-        color: 'white',
-        zIndex: 2
-    }
+        position: "absolute",
+        bottom: 16,
+        left: 16,
+        backgroundColor: "rgba(0,0,0,0.5)",
+        color: "white",
+        zIndex: 2,
+    },
 }));
 
 interface MediaItem {
@@ -353,8 +386,8 @@ export default function Item(props: IItemsProps) {
                 target="_blank"
                 rel="noreferrer"
             >
-                <CardContent>
-                    <Typography gutterBottom component="h1" color="textPrimary">
+                <CardContent style={{ paddingBottom: "0.75rem"}}>
+                    <Typography gutterBottom component="h1" variant="h6" color="textPrimary">
                         {props.data.title}
                     </Typography>
 
