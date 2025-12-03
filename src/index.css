@@ -15,6 +15,10 @@
     font-family: "Roboto", serif;
 }
 
+body {
+    transition: background-color 0.4s ease, color 0.4s ease;
+}
+
 body.dark-mode {
     background-color: #121212;
     color: #ffffff !important;
@@ -131,11 +135,11 @@ body.dark-mode {
 }
 
 body.grid-one .container {
-    max-width: 30rem;
+    max-width: 40rem;
 }
 
 body.grid-two .container {
-    max-width: 40rem;
+    max-width: 50rem;
 }
 
 body.grid-two .container {

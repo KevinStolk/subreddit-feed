@@ -13,7 +13,8 @@ import IconButton from "@material-ui/core/IconButton"
 import {makeStyles} from "@material-ui/core/styles";
 import {IItemsProps} from "../App";
 import {useState, useRef} from "react";
-import {NavigateBefore, NavigateNext} from "@material-ui/icons";
+import Tooltip from "@mui/material/Tooltip";
+import {NavigateBefore, NavigateNext, Web} from "@material-ui/icons";
 
 const useStyles = makeStyles((theme) => ({
     root: {
@@ -169,6 +170,10 @@ const useStyles = makeStyles((theme) => ({
         color: "white",
         zIndex: 2,
     },
+    commentLink: {
+        color: theme.palette.text.primary,
+        opacity: 0.6
+    }
 }));
 
 interface MediaItem {
@@ -376,7 +381,7 @@ export default function Item(props: IItemsProps) {
                     target.src = 'https://pngimg.com/uploads/question_mark/question_mark_PNG1.png';
                     target.width = 155;
                 }}
-                onLoad={(e) => e.currentTarget.classList.add("opacity-full") }
+                onLoad={(e) => e.currentTarget.classList.add("opacity-full")}
             />
         );
     };
@@ -409,7 +414,8 @@ export default function Item(props: IItemsProps) {
                             <span style={{opacity: 0.6}}>•</span>
                             <span style={{opacity: 0.8}}>u/{props.data?.author}</span>
                             <span style={{opacity: 0.6}}>•</span>
-                            <span style={{opacity: 0.8}}>{new Date(props.data?.created_utc * 1000).toLocaleDateString()}</span>
+                            <span
+                                style={{opacity: 0.8}}>{new Date(props.data?.created_utc * 1000).toLocaleDateString()}</span>
 
                         </div>
 
@@ -452,7 +458,9 @@ export default function Item(props: IItemsProps) {
                                     height: '100%',
                                     cursor: mediaItems.length > 0 ? 'pointer' : 'default'
                                 })}
-                                <span style={{opacity: 0.6}}>{props.data?.num_comments} comment{props.data?.num_comments > "1" || props.data?.num_comments === "0" ? "s" : ""}</span>
+                                <a className={classes.commentLink} href={"https://reddit.com" + props.data.permalink}
+                                   target="_blank" rel="noreferrer"
+                                >{props.data?.num_comments} comment{props.data?.num_comments > "1" && props.data?.num_comments === "0" ? "s" : ""}</a>
                             </>
                         )}
                     </CardContent>
@@ -469,7 +477,6 @@ export default function Item(props: IItemsProps) {
                     <Typography variant="subtitle1">
                         {mediaItems[currentMediaIndex].caption}
                     </Typography>
-                    <a href={"https://reddit.com" + props.data.permalink} target="_blank" rel="noreferrer">Link to post</a>
                     <div className={classes.carouselContainer}>
                         {mediaItems[currentMediaIndex].type === 'video' ? (
                             <div className={classes.videoContainer}>
@@ -523,6 +530,11 @@ export default function Item(props: IItemsProps) {
                     <Typography variant="caption" color="textSecondary">
                         {currentMediaIndex + 1} of {mediaItems.length}
                     </Typography>
+                    <Tooltip title="Go to post" placement={"top"}>
+                        <Button color="primary" href={"https://reddit.com" + props.data.permalink} target="_blank" rel="noreferrer" >
+                            <Web ></Web>
+                        </Button>
+                    </Tooltip>
                     <Button onClick={closeLightbox} color="primary">
                         Close
                     </Button>

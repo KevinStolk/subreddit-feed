@@ -246,6 +246,7 @@ function App() {
             createTheme({
                 palette: {
                     mode: darkMode ? 'dark' : 'light',
+                    primary: { main: '#e03e3e' },
                     background: {
                         default: darkMode ? '#121212' : '#fff',
                         paper: darkMode ? '#1E1E1E' : '#fff',
@@ -286,6 +287,7 @@ function App() {
                         {loading ? "Searching..." : "Search"}
                     </Button>
 
+                    <Box sx={{display: "flex", gap: ".5rem", alignItems: "center", flexWrap: "wrap"}}>
                     <FormControl variant="outlined" size="small">
                         <InputLabel>Sort</InputLabel>
                         <Select
@@ -299,6 +301,7 @@ function App() {
                             <MenuItem value="rising">Rising</MenuItem>
                         </Select>
                     </FormControl>
+                    </Box>
                 </form>
 
                 {searchHistory.length > 0 && (
@@ -365,7 +368,6 @@ function App() {
                 )}
 
                 <div className="container">
-
                     <InfiniteScroll
                         className="grid"
                         dataLength={items.length}
