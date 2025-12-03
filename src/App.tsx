@@ -34,6 +34,11 @@ import PostSkeleton from "./components/PostSkeleton";
 
 export interface IItemsProps {
     data: {
+        ups: string;
+        num_comments: string;
+        created_utc: number;
+        author: string;
+        subreddit: string;
         preview: any;
         id: string;
         url_overridden_by_dest: string;
@@ -359,36 +364,39 @@ function App() {
                     <StatusMessage type="empty" message={`No posts found in r/${subreddit}`}/>
                 )}
 
-                <InfiniteScroll
-                    className="grid"
-                    dataLength={items.length}
-                    next={loadSub}
-                    hasMore={!!after} // load if only there is a next page
-                    loader={
-                        loading && (
-                            <div className="progress">
-                                <CircularProgress
-                                />
-                                <h1 className="load-text">Loading...</h1>
-                            </div>
-                        )
-                    }
-                >
-                    {/*{items.map((item: IItemsProps) => (*/}
-                    {/*    <Item key={item.data.id} data={item.data}/>*/}
-                    {/*))}*/}
-                    {loading && items.length === 0 ? (
-                        <>
-                            {[...Array(5)].map((_, i) => (
-                                <PostSkeleton key={i}/>
-                            ))}
-                        </>
-                    ) : (
-                        items.map((item: IItemsProps) => (
-                            <Item key={item.data.id} data={item.data}/>
-                        ))
-                    )}
-                </InfiniteScroll>
+                <div className="container">
+
+                    <InfiniteScroll
+                        className="grid"
+                        dataLength={items.length}
+                        next={loadSub}
+                        hasMore={!!after} // load if only there is a next page
+                        loader={
+                            loading && (
+                                <div className="progress">
+                                    <CircularProgress
+                                    />
+                                    <h1 className="load-text">Loading...</h1>
+                                </div>
+                            )
+                        }
+                    >
+                        {/*{items.map((item: IItemsProps) => (*/}
+                        {/*    <Item key={item.data.id} data={item.data}/>*/}
+                        {/*))}*/}
+                        {loading && items.length === 0 ? (
+                            <>
+                                {[...Array(5)].map((_, i) => (
+                                    <PostSkeleton key={i}/>
+                                ))}
+                            </>
+                        ) : (
+                            items.map((item: IItemsProps) => (
+                                <Item key={item.data.id} data={item.data}/>
+                            ))
+                        )}
+                    </InfiniteScroll>
+                </div>
 
                 <SpeedDial
                     ariaLabel="SpeedDial"

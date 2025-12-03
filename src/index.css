@@ -20,6 +20,14 @@ body.dark-mode {
     color: #ffffff !important;
 }
 
+.container {
+    margin-left: auto;
+    margin-right: auto;
+    padding-left: 1rem;
+    padding-right: 1rem;
+    max-width: var(--grid-columns)
+}
+
 .load-text {
     font-size: 1.25rem;
     color: rgb(59, 130, 246);
@@ -108,12 +116,6 @@ body.dark-mode {
     text-align: center;
 }
 
-.grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr); /* 3 equal columns */
-    gap: 1rem;
-}
-
 .MuiDialog-paperFullWidth {
     width: 100% !important;
 }
@@ -126,6 +128,18 @@ body.dark-mode {
 
 .MuiOutlinedInput-root:hover {
     border: 1px solid #ffffff !important;
+}
+
+body.grid-one .container {
+    max-width: 30rem;
+}
+
+body.grid-two .container {
+    max-width: 40rem;
+}
+
+body.grid-two .container {
+    max-width: 60rem;
 }
 
 .grid-one {
@@ -145,6 +159,8 @@ body.dark-mode {
     grid-template-columns: repeat(var(--grid-columns, 2), 1fr);
     gap: 16px;
     padding: .5rem;
+    max-width: var(--grid-columns);
+    margin: 0 auto
 }
 
 @media (max-width: 768px) {

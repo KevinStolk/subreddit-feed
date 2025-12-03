@@ -23,7 +23,8 @@ const useStyles = makeStyles((theme) => ({
         overflow: "hidden",
         backgroundColor: theme.palette.background.paper,
         color: theme.palette.text.primary,
-        borderRadius: 12,
+        border: "1px solid rgba(255,255,255,0.05)",
+        borderRadius: 16,
         transition: "transform 0.15s ease, box-shadow 0.15s ease",
         boxShadow:
             theme.palette.background.default === "dark"
@@ -381,60 +382,95 @@ export default function Item(props: IItemsProps) {
 
     return (
         <Card className={classes.root}>
-            <CardActionArea
-                href={"https://reddit.com" + props.data.permalink}
-                target="_blank"
-                rel="noreferrer"
-            >
-                <CardContent style={{ paddingBottom: "0.75rem"}}>
-                    <Typography gutterBottom component="h1" variant="h6" color="textPrimary">
-                        {props.data.title}
-                    </Typography>
+            <div onClick={(e) => {
+                if (mediaItems.length > 0) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    openLightbox(0);
+                }
+            }}>
+                <CardActionArea
+                    href={"https://reddit.com" + props.data.permalink}
+                    target="_blank"
+                    rel="noreferrer"
+                >
 
-                    {mediaItems.length === 0 ? (
-                        <div className={classes.placeholder}>
-                            <Typography variant="body2" color="textSecondary">
-                                No media available
-                            </Typography>
-                        </div>
-                    ) : isGallery ? (
-                        <div style={{height: "100%", paddingBottom: "2rem"}} className={classes.galleryContainer}>
-                            {mediaItems.slice(0, 1).map((item, index) => (
-                                <div style={{height: "100%", width: "100%"}} key={`${item.id}-${index}`}
-                                     onClick={(e) => {
-                                         e.preventDefault();
-                                         e.stopPropagation();
-                                         openLightbox(index);
-                                     }}>
-                                    {renderMedia(item, {
-                                        width: '100%',
-                                        height: '100%'
-                                    })}
-                                </div>
-                            ))}
-                            {mediaItems.length > 0 && (
-                                <div className={classes.moreImagesIndicator}>
-                                    +{mediaItems.length} in total
-                                </div>
-                            )}
-                        </div>
-                    ) : (
-                        <div style={{height: "95%"}} onClick={(e) => {
-                            if (mediaItems.length > 0) {
-                                e.preventDefault();
-                                e.stopPropagation();
-                                openLightbox(0);
-                            }
+                    <CardContent style={{paddingBottom: "0.75rem"}}>
+                        <div style={{
+                            display: "flex",
+                            alignItems: "center",
+                            gap: "8px",
+                            marginBottom: "8px",
+                            opacity: 0.8,
+                            fontSize: "0.85rem"
                         }}>
-                            {renderMedia(mediaItems[0], {
-                                width: '100%',
-                                height: '100%',
-                                cursor: mediaItems.length > 0 ? 'pointer' : 'default'
-                            })}
+
+                            <span style={{opacity: 0.8}}>{props.data?.ups}{props.data?.ups > "1000" ? "k" : ""}</span>
+                            <span style={{fontWeight: 600}}>
+        r/{props.data?.subreddit}
+    </span>
+
+                            <span style={{opacity: 0.6}}>•</span>
+
+                            <span style={{opacity: 0.8}}>
+        u/{props.data?.author}
+    </span>
+
+                            <span style={{opacity: 0.6}}>•</span>
+
+                            <span style={{opacity: 0.8}}>
+        {new Date(props.data?.created_utc * 1000).toLocaleDateString()}
+    </span>
+
                         </div>
-                    )}
-                </CardContent>
-            </CardActionArea>
+
+                        <Typography gutterBottom component="h1" variant="h5" color="textPrimary">
+                            {props.data.title}
+                        </Typography>
+
+                        {mediaItems.length === 0 ? (
+                            <div className={classes.placeholder}>
+                                <Typography variant="body2" color="textSecondary">
+                                    No media available
+                                </Typography>
+                            </div>
+                        ) : isGallery ? (
+                            <div style={{height: "100%", paddingBottom: "2rem"}} className={classes.galleryContainer}>
+                                {mediaItems.slice(0, 1).map((item, index) => (
+                                    <div style={{height: "100%", width: "100%"}} key={`${item.id}-${index}`}
+                                         onClick={(e) => {
+                                             e.preventDefault();
+                                             e.stopPropagation();
+                                             openLightbox(index);
+                                         }}>
+                                        {renderMedia(item, {
+                                            width: '100%',
+                                            height: '100%'
+                                        })}
+                                    </div>
+                                ))}
+                                {mediaItems.length > 0 && (
+                                    <div className={classes.moreImagesIndicator}>
+                                        +{mediaItems.length} in total
+                                    </div>
+                                )}
+                            </div>
+                        ) : (
+                            <>
+                                {renderMedia(mediaItems[0], {
+                                    width: '100%',
+                                    height: '100%',
+                                    cursor: mediaItems.length > 0 ? 'pointer' : 'default'
+                                })}
+
+                                <span
+                                    style={{opacity: 0.6}}>{props.data?.num_comments} comment{props.data?.num_comments > "1" || props.data?.num_comments === "0" ? "s" : ""}</span>
+                            </>
+                        )}
+
+                    </CardContent>
+                </CardActionArea>
+            </div>
 
             <Dialog
                 open={lightboxOpen}
