@@ -1,4 +1,4 @@
-import { ArrowDownward, ArrowUpward } from "@material-ui/icons";
+import {ArrowDownward, ArrowUpward} from "@material-ui/icons";
 import {
     CircularProgress,
     SpeedDial,
@@ -19,7 +19,7 @@ import {
     DialogContentText,
     DialogActions, InputAdornment
 } from "@mui/material";
-import { useState, useEffect, useMemo, ChangeEvent } from "react";
+import {useState, useEffect, useMemo, useRef, ChangeEvent} from "react";
 import Item from "./components/Item";
 import InfiniteScroll from "react-infinite-scroll-component";
 import axios from "axios";
@@ -77,6 +77,7 @@ function App() {
     });
     const [saveHistory, setSaveHistory] = useState<boolean>(true);
     const [openConfirm, setOpenConfirm] = useState(false);
+    const inputRef = useRef<HTMLInputElement>(null);
     let scrollElement = document.scrollingElement || document.body;
 
     // const fetchMoreData = () => {
@@ -154,7 +155,7 @@ function App() {
     };
 
     const loadSub = () => {
-        if(!loading && after) {
+        if (!loading && after) {
             fetchSubreddit(subreddit, true);
         }
     };
@@ -172,6 +173,13 @@ function App() {
         const savedHistory = JSON.parse(localStorage.getItem("searchHistory") || "[]");
         const savedToggle = localStorage.getItem("saveHistory") === "true";
 
+        const handleKeyDown = (e: KeyboardEvent) => {
+            if (e.key === "/") {
+                e.preventDefault()
+                inputRef.current?.focus();
+            }
+        };
+
         setHistory(savedHistory);
         setSaveHistory(savedToggle);
 
@@ -188,6 +196,9 @@ function App() {
         if (subreddit) {
             fetchSubreddit(subreddit);
         }
+
+        window.addEventListener("keydown", handleKeyDown);
+        return () => window.removeEventListener("keydown", handleKeyDown);
     }, [sort]);
 
     const handleInputChange = (
@@ -252,6 +263,7 @@ function App() {
                 </div>
                 <form className={"form"} onSubmit={handleSubmit}>
                     <TextField
+                        inputRef={inputRef}
                         variant="outlined"
                         value={subreddit}
                         onChange={handleInputChange}
@@ -260,7 +272,7 @@ function App() {
 
                             endAdornment: (
                                 <InputAdornment position="end">
-                                    {loading && <CircularProgress size={20} />}
+                                    {loading && <CircularProgress size={20}/>}
                                 </InputAdornment>
                             )
                         }}
@@ -307,7 +319,7 @@ function App() {
                         </Box>
                         <Box
                             mt={1}
-                            sx={{ display: "flex", flexWrap: "wrap", gap: 1, maxWidth: "500px" }}
+                            sx={{display: "flex", flexWrap: "wrap", gap: 1, maxWidth: "500px"}}
                         >
                             {searchHistory.map((sub) => (
                                 <Chip
@@ -339,12 +351,12 @@ function App() {
                     </DialogActions>
                 </Dialog>
 
-                {error && <StatusMessage type="error" message={error} />}
+                {error && <StatusMessage type="error" message={error}/>}
 
                 {/* Empty state handling */}
 
                 {!loading && !error && items.length === 0 && subreddit && (
-                    <StatusMessage type="empty" message={`No posts found in r/${subreddit}`} />
+                    <StatusMessage type="empty" message={`No posts found in r/${subreddit}`}/>
                 )}
 
                 <InfiniteScroll
@@ -368,12 +380,12 @@ function App() {
                     {loading && items.length === 0 ? (
                         <>
                             {[...Array(5)].map((_, i) => (
-                                <PostSkeleton key={i} />
+                                <PostSkeleton key={i}/>
                             ))}
                         </>
                     ) : (
                         items.map((item: IItemsProps) => (
-                            <Item key={item.data.id} data={item.data} />
+                            <Item key={item.data.id} data={item.data}/>
                         ))
                     )}
                 </InfiniteScroll>
