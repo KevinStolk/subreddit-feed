@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import {useState, useEffect} from "react";
 import axios from "axios";
 
 export interface IPostData {
@@ -33,92 +33,6 @@ export interface IUseSubreddit {
     clearHistory: () => void;
     fetchSubreddit: () => void;
 }
-//
-// export const useSubreddit = (initialSubreddit = "", initialSort = "new"): IUseSubreddit => {
-//     const [posts, setPosts] = useState<IPostData[]>([]);
-//     const [subreddit, setSubreddit] = useState(initialSubreddit);
-//     const [sort, setSort] = useState(initialSort);
-//     const [after, setAfter] = useState<string | null>(null);
-//     const [loading, setLoading] = useState(false);
-//     const [error, setError] = useState("");
-//     const [searchHistory, setSearchHistory] = useState<string[]>(() => {
-//         const stored = localStorage.getItem("searchHistory");
-//         return stored ? JSON.parse(stored) : [];
-//     });
-//
-//     const saveHistory = localStorage.getItem("saveHistory") === "true";
-//     const rememberLast = localStorage.getItem("rememberLastSubreddit") === "true";
-//
-//     const fetchPosts = async (sub: string, append = false) => {
-//         const trimmed = sub.trim();
-//         if (!trimmed) {
-//             setError("Subreddit cannot be empty");
-//             setPosts([]);
-//             setLoading(false);
-//             return;
-//         }
-//
-//         setLoading(true);
-//         setError("");
-//
-//         try {
-//             const url = `https://www.reddit.com/r/${trimmed}/${sort}.json?limit=25${after ? `&after=${after}` : ""}`;
-//             const res = await axios.get(url);
-//             const newPosts = res.data.data.children.map((c: any) => c.data);
-//             const nextAfter = res.data.data.after;
-//
-//             setPosts(prev => (append ? [...prev, ...newPosts] : newPosts));
-//             setAfter(nextAfter);
-//             setLoading(false);
-//
-//             if (rememberLast) {
-//                 localStorage.setItem("lastSubreddit", trimmed);
-//             }
-//
-//             if (saveHistory) {
-//                 setSearchHistory(prev => {
-//                     const updated = [trimmed, ...prev.filter(s => s !== trimmed)].slice(0, 10);
-//                     localStorage.setItem("searchHistory", JSON.stringify(updated));
-//                     return updated;
-//                 });
-//             }
-//         } catch (err) {
-//             console.error(err);
-//             setError("Failed to load subreddit, does this even exist?");
-//             setPosts([]);
-//             setLoading(false);
-//         }
-//     };
-//
-//     const fetchNextPage = () => {
-//         if (!loading && after) {
-//             fetchPosts(subreddit, true);
-//         }
-//     };
-//
-//     const clearHistory = () => {
-//         setSearchHistory([]);
-//         localStorage.removeItem("searchHistory");
-//     };
-//
-//     // Refetch whenever subreddit or sort changes
-//     useEffect(() => {
-//         if (subreddit) {
-//             setAfter(null);
-//             fetchPosts(subreddit);
-//         }
-//     }, [subreddit, sort]);
-//
-//     // useEffect(() => {
-//     //     const lastSub = localStorage.getItem("lastSubreddit");
-//     //     if (rememberLast && lastSub) {
-//     //         setSubreddit(lastSub);
-//     //     }
-//     // }, []);
-//
-//     return { posts, loading, error, sort, setSort, subreddit, setSubreddit, fetchNextPage, searchHistory, clearHistory };
-// };
-
 
 export const useSubreddit = (initialSubreddit = "", initialSort = "new"): IUseSubreddit => {
     const [posts, setPosts] = useState<IPostData[]>([]);
