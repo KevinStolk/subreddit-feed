@@ -73,7 +73,8 @@ function App() {
         setSubreddit,
         fetchNextPage,
         searchHistory,
-        clearHistory
+        clearHistory,
+        fetchSubreddit
     } = useSubreddit();
     const [darkMode, setDarkMode] = useState(localStorage.getItem('darkMode') === 'true');
     const inputRef = useRef<HTMLInputElement>(null);
@@ -95,6 +96,7 @@ function App() {
     const handleSubmit = (e: ChangeEvent<HTMLFormElement>) => {
         e.preventDefault();
         setSubreddit(subreddit);
+        fetchSubreddit();
     };
 
     const handleInputChange = (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -103,10 +105,6 @@ function App() {
 
     const scrollToTop = () => scrollElement.scrollTop = 0;
     const scrollToBottom = () => scrollElement.scrollTop = scrollElement.scrollHeight;
-    const toggleDarkMode = () => setDarkMode(prev => {
-        localStorage.setItem('darkMode', String(!prev));
-        return !prev;
-    });
 
     return (
         <ThemeProvider theme={theme}>

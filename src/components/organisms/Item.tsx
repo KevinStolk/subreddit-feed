@@ -190,6 +190,12 @@ export const Item = ({data}: { data: IItemsProps['data'] }) => {
 
         return <CardMedia component="img" src={item.src} alt={item.caption}
                           style={{opacity: 0, transition: "opacity 0.7s", borderRadius: 8, ...style}}
+                          onError={(e) => {
+                              const target = e.target as HTMLImageElement;
+                              target.onerror = null;
+                              target.src = 'https://pngimg.com/uploads/question_mark/question_mark_PNG1.png';
+                              target.width = 155;
+                          }}
                           onLoad={(e) => e.currentTarget.classList.add("opacity-full")}/>;
     };
 
