@@ -29,7 +29,7 @@ export const Item = ({data}: { data: IItemsProps['data'] }) => {
     const [currentMediaIndex, setCurrentMediaIndex] = useState(0);
 
     // const videoRef = useRef<HTMLVideoElement>(null);
-    // const [isGifPlaying, setIsGifPlaying] = useState(true);
+    const [isGifPlaying, setIsGifPlaying] = useState(true);
 
     const videoLink = data.secure_media_embed?.media_domain_url;
     const image_src = data.url_overridden_by_dest;
