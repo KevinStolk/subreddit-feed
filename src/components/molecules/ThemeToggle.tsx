@@ -6,7 +6,7 @@ interface ThemeToggleProps {
     toggleDarkMode: () => void;
 }
 
-const ThemeToggle = ({darkMode, toggleDarkMode}: ThemeToggleProps) => {
+export const ThemeToggle = ({darkMode, toggleDarkMode}: ThemeToggleProps) => {
 
     return (
         <IconButton color="inherit" onClick={toggleDarkMode} aria-label="Toggle dark mode">
@@ -14,5 +14,3 @@ const ThemeToggle = ({darkMode, toggleDarkMode}: ThemeToggleProps) => {
         </IconButton>
     );
 };
-
-export default ThemeToggle;
