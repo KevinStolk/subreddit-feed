@@ -14,7 +14,6 @@
     "@types/node": "^24.10.1",
     "@types/react": "^19.2.7",
     "@types/react-dom": "^19.2.3",
-    "@vercel/node": "^5.5.15",
     "prettier": "^3.7.4",
     "react": "^19.2.1",
     "react-dom": "^19.2.1",
@@ -26,7 +25,6 @@
     "react-window": "^2.2.3",
     "react-zoom-pan-pinch": "^3.7.0",
     "typescript": "^5.9.3",
-    "vercel": "^49.1.1",
     "web-vitals": "^5.1.0"
   },
   "scripts": {
@@ -56,6 +54,5 @@
   "devDependencies": {
     "@types/react-window": "^1.8.8",
     "axios": "^1.13.2"
-  },
-  "type": "module"
+  }
 }
