@@ -55,9 +55,7 @@ export const useSubreddit = (initialSubreddit = "", initialSort = "new"): IUseSu
 
     const fetchSuggestions = async (sub: string) => {
         try {
-            const res = await axios.get(
-                `https://www.reddit.com/api/search_reddit_names.json?query=${sub}&exact=false`
-            );
+            const res = await axios.get(`/api/redditSearch?query=${sub}`);
 
             const names = res.data.names || [];
             setSuggestions(names.slice(0, 5)); // limit suggestions
@@ -79,7 +77,8 @@ export const useSubreddit = (initialSubreddit = "", initialSort = "new"): IUseSu
         setSuggestions([]);
 
         try {
-            const url = `https://www.reddit.com/r/${trimmed}/${sort}.json?limit=25${after ? `&after=${after}` : ""}`;
+            // const url = `https://www.reddit.com/r/${trimmed}/${sort}.json?limit=25${after ? `&after=${after}` : ""}`;
+            const url = `/api/redditPosts?sub=${trimmed}&sort=${sort}${after ? `&after=${after}` : ""}`;
             const res = await axios.get(url);
             const newPosts = res.data.data.children.map((c: any) => c.data);
             const nextAfter = res.data.data.after;
