@@ -26,6 +26,7 @@ import {StatusMessage} from "./components/molecules/StatusMessage";
 import {SettingsMenu} from "./components/organisms/SettingsMenu";
 import {useSubreddit} from "./hooks/useSubreddit";
 import {useSettings} from "./hooks/useSettings";
+import {SuggestionsList} from "./components/molecules/SuggestionsList";
 
 
 export interface IItemsProps {
@@ -180,29 +181,10 @@ function App() {
                         </FormControl>
                     </form>
 
-                    {suggestions.length > 0 && (
-                        <Box mt={2} mb={2} display="flex" flexDirection="column" alignItems="center">
-                            <p className="font-semibold mb-2">Did you mean:</p>
-                            <Box display="flex" justifyContent="space-between" width="100%" maxWidth="500px">
-                                <Box mt={1} sx={{display: "flex", flexWrap: "wrap", gap: 1, maxWidth: "500px"}}>
-                                {suggestions.map(sub => (
-                                    <Chip
-                                        key={sub}
-                                        onClick={() => {
-                                            setSubreddit(sub);
-                                            fetchSubredditFromSuggestion(sub);
-                                        }}
-                                        className="cursor-pointer hover:underline"
-                                        clickable
-                                        label={`r/${sub}`}
-                                    >
-                                    </Chip>
-                                ))}
-                            </Box>
-                            </Box>
-                        </Box>
-                    )}
 
+                    {suggestions.length > 0 && (
+                        <SuggestionsList suggestions={suggestions} setSubreddit={setSubreddit} fetchSubredditFromSuggestion={fetchSubredditFromSuggestion}/>
+                    )}
 
                     {searchHistory.length > 0 && (
                         <Box mt={2} mb={2} display="flex" flexDirection="column" alignItems="center">
