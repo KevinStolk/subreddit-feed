@@ -76,7 +76,7 @@ function App() {
         clearHistory,
         fetchSubreddit
     } = useSubreddit();
-    const {darkMode, toggleDarkMode } = useSettings()
+    const {darkMode, toggleDarkMode} = useSettings()
     const inputRef = useRef<HTMLInputElement>(null);
     const scrollElement = document.scrollingElement || document.body;
     const settings = useSettings()
@@ -110,59 +110,90 @@ function App() {
         <ThemeProvider theme={theme}>
             <CssBaseline/>
             <div className="App">
-                <div style={{display: "flex", justifyContent: "end", padding: "1rem"}}>
-                    <SettingsMenu darkMode={darkMode} toggleDarkMode={toggleDarkMode}
-                                  rememberLast={settings.rememberLast} setRememberLast={settings.setRememberLast}
-                                  saveHistory={settings.saveHistory} setSaveHistory={settings.setSaveHistory}/>
-                </div>
-
-                <form className="form" onSubmit={handleSubmit}>
-                    <TextField
-                        inputRef={inputRef}
-                        variant="outlined"
-                        value={subreddit}
-                        onChange={handleInputChange}
-                        label="Subreddit"
-                        InputProps={{
-                            endAdornment: (
-                                <InputAdornment position="end">
-                                    {loading && <CircularProgress size={20}/>}
-                                </InputAdornment>
-                            )
-                        }}
-                    />
-                    <Button type="submit" variant="contained" color="primary" disabled={loading}>
-                        {loading ? "Searching..." : "Search"}
-                    </Button>
-
-                    <FormControl variant="outlined" size="small">
-                        <InputLabel>Sort</InputLabel>
-                        <Select value={sort} onChange={e => setSort(e.target.value)} label="Sort">
-                            <MenuItem value="hot">Hot</MenuItem>
-                            <MenuItem value="new">New</MenuItem>
-                            <MenuItem value="top">Top</MenuItem>
-                            <MenuItem value="rising">Rising</MenuItem>
-                        </Select>
-                    </FormControl>
-                </form>
-
-                {searchHistory.length > 0 && (
-                    <Box mt={2} mb={2} display="flex" flexDirection="column" alignItems="center">
-                        <Box display="flex" justifyContent="space-between" width="100%" maxWidth="500px">
-                            <Typography variant="body2" color="text.secondary">Recent Searches:</Typography>
-                            <Button size="small" onClick={clearHistory}>Clear</Button>
-                        </Box>
-                        <Box mt={1} sx={{display: "flex", flexWrap: "wrap", gap: 1, maxWidth: "500px"}}>
-                            {searchHistory.map(sub => (
-                                <Chip key={sub} label={sub} onClick={() => setSubreddit(sub)} clickable/>
-                            ))}
-                        </Box>
-                    </Box>
-                )}
-
-                {error && <StatusMessage type="error" message={error}/>}
-
                 <div className="container">
+                    <div style={{display: "flex", justifyContent: "end", padding: "1rem"}}>
+                        <SettingsMenu darkMode={darkMode} toggleDarkMode={toggleDarkMode}
+                                      rememberLast={settings.rememberLast} setRememberLast={settings.setRememberLast}
+                                      saveHistory={settings.saveHistory} setSaveHistory={settings.setSaveHistory}/>
+                    </div>
+
+                    <form className="form" onSubmit={handleSubmit}
+                          style={{
+                              display: "flex",
+                              gap: "1rem",
+                              margin: "0 auto",
+                              justifyContent: "center",
+                              alignItems: "center"
+                          }}
+                    >
+                        <TextField
+                            inputRef={inputRef}
+                            variant="outlined"
+                            value={subreddit}
+                            onChange={handleInputChange}
+                            label="Subreddit"
+
+                            sx={{
+                                width: {
+                                    xs: "100%",
+                                    sm: "auto"
+                                },
+                            }}
+                            InputProps={{
+                                endAdornment: (
+                                    <InputAdornment position="end">
+                                        {loading && <CircularProgress size={20}/>}
+                                    </InputAdornment>
+                                )
+                            }}
+                        />
+                        <Button type="submit" variant="contained" color="primary" disabled={loading}
+                                sx={{
+                                    width: {
+                                        xs: "100%",
+                                        sm: "auto"
+                                    },
+                                }}
+                        >
+                            {loading ? "Searching..." : "Search"}
+                        </Button>
+
+                        <FormControl variant="outlined"
+                                     size={"small"}
+                                     sx={{
+                                         width: {
+                                             xs: "100%",
+                                             sm: "auto"
+                                         },
+                                     }}
+                        >
+                            <InputLabel>Sort</InputLabel>
+                            <Select value={sort} onChange={e => setSort(e.target.value)} label="Sort"
+                            >
+                                <MenuItem value="hot">Hot</MenuItem>
+                                <MenuItem value="new">New</MenuItem>
+                                <MenuItem value="top">Top</MenuItem>
+                                <MenuItem value="rising">Rising</MenuItem>
+                            </Select>
+                        </FormControl>
+                    </form>
+
+                    {searchHistory.length > 0 && (
+                        <Box mt={2} mb={2} display="flex" flexDirection="column" alignItems="center">
+                            <Box display="flex" justifyContent="space-between" width="100%" maxWidth="500px">
+                                <Typography variant="body2" color="text.secondary">Recent Searches:</Typography>
+                                <Button size="small" onClick={clearHistory}>Clear</Button>
+                            </Box>
+                            <Box mt={1} sx={{display: "flex", flexWrap: "wrap", gap: 1, maxWidth: "500px"}}>
+                                {searchHistory.map(sub => (
+                                    <Chip key={sub} label={sub} onClick={() => setSubreddit(sub)} clickable/>
+                                ))}
+                            </Box>
+                        </Box>
+                    )}
+
+                    {error && <StatusMessage type="error" message={error}/>}
+
                     <InfiniteScroll
                         className="grid"
                         dataLength={posts.length}

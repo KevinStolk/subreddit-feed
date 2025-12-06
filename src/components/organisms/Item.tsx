@@ -232,6 +232,7 @@ export const Item = ({data}: { data: IItemsProps['data'] }) => {
                             display: "flex",
                             alignItems: "center",
                             gap: 6,
+                            flexWrap: "wrap",
                             marginBottom: 8,
                             opacity: 0.8,
                         }}>

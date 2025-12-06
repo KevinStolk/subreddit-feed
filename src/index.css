@@ -28,7 +28,7 @@ body {
 }
 
 .inner-content {
-    font-size: 0.85rem;
+    font-size: 1rem;
 }
 
 .load-text {
@@ -176,7 +176,7 @@ body.grid-two .container {
     }
 
     .inner-content {
-        font-size: 0.7rem;
+        font-size: 0.8rem;
     }
 
 }
