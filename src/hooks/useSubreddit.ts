@@ -32,6 +32,8 @@ export interface IUseSubreddit {
     searchHistory: string[];
     clearHistory: () => void;
     fetchSubreddit: () => void;
+    fetchSubredditFromSuggestion: (sub: string) => void;
+    suggestions: string[];
 }
 
 export const useSubreddit = (initialSubreddit = "", initialSort = "new"): IUseSubreddit => {
@@ -46,10 +48,23 @@ export const useSubreddit = (initialSubreddit = "", initialSort = "new"): IUseSu
         return stored ? JSON.parse(stored) : [];
     });
 
+    const [suggestions, setSuggestions] = useState<string[]>([]);
+
     const saveHistory = localStorage.getItem("saveHistory") === "true";
     const rememberLast = localStorage.getItem("rememberLastSubreddit") === "true";
 
-    // Internal fetch
+    const fetchSuggestions = async (sub: string) => {
+        try {
+            const res = await axios.get(
+                `https://www.reddit.com/api/search_reddit_names.json?query=${sub}&exact=false`
+            );
+
+            const names = res.data.names || [];
+            setSuggestions(names.slice(0, 5)); // limit suggestions
+        } catch {
+            setSuggestions([]);
+        }
+    };
     const fetchPosts = async (sub: string, append = false) => {
         const trimmed = sub.trim();
         if (!trimmed) {
@@ -61,6 +76,7 @@ export const useSubreddit = (initialSubreddit = "", initialSort = "new"): IUseSu
 
         setLoading(true);
         setError("");
+        setSuggestions([]);
 
         try {
             const url = `https://www.reddit.com/r/${trimmed}/${sort}.json?limit=25${after ? `&after=${after}` : ""}`;
@@ -83,16 +99,25 @@ export const useSubreddit = (initialSubreddit = "", initialSort = "new"): IUseSu
             }
         } catch (err) {
             console.error(err);
+
+            await fetchSuggestions(trimmed);
+
             setError("Failed to load subreddit, does this even exist?");
             setPosts([]);
             setLoading(false);
+
         }
     };
 
-    // **Exposed fetch function for form submit**
     const fetchSubreddit = () => {
         fetchPosts(subreddit, false);
         setAfter(null); // reset pagination on new search
+    };
+
+    const fetchSubredditFromSuggestion = (sub: string) => {
+        setSubreddit(sub);
+        setAfter(null);
+        fetchPosts(sub, false);
     };
 
     const fetchNextPage = () => {
@@ -126,5 +151,7 @@ export const useSubreddit = (initialSubreddit = "", initialSort = "new"): IUseSu
         searchHistory,
         clearHistory,
         fetchSubreddit,
+        fetchSubredditFromSuggestion,
+        suggestions,
     };
 };
