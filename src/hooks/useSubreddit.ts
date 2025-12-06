@@ -77,7 +77,6 @@ export const useSubreddit = (initialSubreddit = "", initialSort = "new"): IUseSu
         setSuggestions([]);
 
         try {
-            // const url = `https://www.reddit.com/r/${trimmed}/${sort}.json?limit=25${after ? `&after=${after}` : ""}`;
             const url = `/api/redditPosts?sub=${trimmed}&sort=${sort}${after ? `&after=${after}` : ""}`;
             const res = await axios.get(url);
             const newPosts = res.data.data.children.map((c: any) => c.data);
