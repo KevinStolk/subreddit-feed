@@ -228,15 +228,14 @@ export const Item = ({data}: { data: IItemsProps['data'] }) => {
             >
                 <CardActionArea href={"https://reddit.com" + data.permalink} target="_blank" rel="noreferrer">
                     <CardContent sx={{pb: 1}}>
-                        <div style={{
+                        <div className="inner-content" style={{
                             display: "flex",
                             alignItems: "center",
                             gap: 6,
                             marginBottom: 8,
                             opacity: 0.8,
-                            fontSize: "0.85rem"
                         }}>
-                            <IconButton aria-label="like" size={"small"} color={"primary"}>
+                            <IconButton style={{padding: "0"}} aria-label="like" size={"small"} color={"primary"}>
                                 <ThumbUpAlt/>
                             </IconButton>
                             <span>{data?.ups}{data?.ups > "1000" ? "k" : ""}</span>
@@ -326,10 +325,10 @@ export const Item = ({data}: { data: IItemsProps['data'] }) => {
             <Dialog open={lightboxOpen} onClose={closeLightbox} maxWidth="lg" fullWidth>
                 <DialogContent>
                     <Typography variant="subtitle1">{mediaItems[currentMediaIndex].caption}</Typography>
-                    <div style={{position: "relative", height: "70vh", width: "100%", overflow: "hidden"}}>
+                    <div className="dialog-content" style={{position: "relative",  width: "100%", overflow: "hidden"}}>
                         {mediaItems[currentMediaIndex].type === "video" ? (
                             <iframe src={mediaItems[currentMediaIndex].src}
-                                    style={{position: "absolute", top: 0, left: 0, width: "100%", height: "100%"}}
+                                    style={{width: "100%", height: "100%"}}
                                     allowFullScreen title={mediaItems[currentMediaIndex].caption}/>
                         ) : mediaItems[currentMediaIndex].type === "gif" ? (
                             <img src={mediaItems[currentMediaIndex].gifSrc || mediaItems[currentMediaIndex].src}

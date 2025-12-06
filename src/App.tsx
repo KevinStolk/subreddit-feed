@@ -15,7 +15,7 @@ import {
     InputLabel,
     InputAdornment
 } from "@mui/material";
-import {useState, useRef, ChangeEvent, useMemo} from "react";
+import {useRef, ChangeEvent, useMemo} from "react";
 import InfiniteScroll from "react-infinite-scroll-component";
 import {createTheme, ThemeProvider} from "@mui/material/styles";
 import CssBaseline from "@mui/material/CssBaseline";
@@ -76,7 +76,7 @@ function App() {
         clearHistory,
         fetchSubreddit
     } = useSubreddit();
-    const [darkMode, setDarkMode] = useState(localStorage.getItem('darkMode') === 'true');
+    const {darkMode, toggleDarkMode } = useSettings()
     const inputRef = useRef<HTMLInputElement>(null);
     const scrollElement = document.scrollingElement || document.body;
     const settings = useSettings()
@@ -111,7 +111,7 @@ function App() {
             <CssBaseline/>
             <div className="App">
                 <div style={{display: "flex", justifyContent: "end", padding: "1rem"}}>
-                    <SettingsMenu darkMode={settings.darkMode} toggleDarkMode={settings.toggleDarkMode}
+                    <SettingsMenu darkMode={darkMode} toggleDarkMode={toggleDarkMode}
                                   rememberLast={settings.rememberLast} setRememberLast={settings.setRememberLast}
                                   saveHistory={settings.saveHistory} setSaveHistory={settings.setSaveHistory}/>
                 </div>

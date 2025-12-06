@@ -15,10 +15,10 @@ export const useSettings = (): ISettings => {
     const [saveHistory, setSaveHistory] = useState(localStorage.getItem("saveHistory") === "true");
 
     const toggleDarkMode = () => {
-        setDarkMode(prev => {
+        setDarkMode((prev => {
             localStorage.setItem("darkMode", String(!prev));
             return !prev;
-        });
+        }));
     };
 
     const handleRememberLast = (value: boolean) => {
