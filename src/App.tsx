@@ -15,12 +15,11 @@ import {
     InputLabel,
     InputAdornment
 } from "@mui/material";
+import React from "react"
 import {useRef, ChangeEvent, useMemo} from "react";
 import InfiniteScroll from "react-infinite-scroll-component";
 import {createTheme, ThemeProvider} from "@mui/material/styles";
 import CssBaseline from "@mui/material/CssBaseline";
-
-import {Item} from "./components/organisms/Item";
 import {PostSkeleton} from "./components/molecules/PostSkeleton";
 import {StatusMessage} from "./components/molecules/StatusMessage";
 import {SettingsMenu} from "./components/organisms/SettingsMenu";
@@ -28,6 +27,7 @@ import {useSubreddit} from "./hooks/useSubreddit";
 import {useSettings} from "./hooks/useSettings";
 import {SuggestionsList} from "./components/molecules/SuggestionsList";
 
+const Item = React.lazy(() => import('./components/organisms/Item').then(module => ({default: module.Item})));
 
 export interface IItemsProps {
     data: {
@@ -113,13 +113,12 @@ function App() {
         <ThemeProvider theme={theme}>
             <CssBaseline/>
             <div className="App">
+                <div style={{display: "flex", justifyContent: "end", padding: "1rem"}}>
+                    <SettingsMenu darkMode={darkMode} toggleDarkMode={toggleDarkMode}
+                                  rememberLast={settings.rememberLast} setRememberLast={settings.setRememberLast}
+                                  saveHistory={settings.saveHistory} setSaveHistory={settings.setSaveHistory}/>
+                </div>
                 <div className="container">
-                    <div style={{display: "flex", justifyContent: "end", padding: "1rem"}}>
-                        <SettingsMenu darkMode={darkMode} toggleDarkMode={toggleDarkMode}
-                                      rememberLast={settings.rememberLast} setRememberLast={settings.setRememberLast}
-                                      saveHistory={settings.saveHistory} setSaveHistory={settings.setSaveHistory}/>
-                    </div>
-
                     <form className="form" onSubmit={handleSubmit}
                           style={{
                               display: "flex",
@@ -183,7 +182,8 @@ function App() {
 
 
                     {suggestions.length > 0 && (
-                        <SuggestionsList suggestions={suggestions} setSubreddit={setSubreddit} fetchSubredditFromSuggestion={fetchSubredditFromSuggestion}/>
+                        <SuggestionsList suggestions={suggestions} setSubreddit={setSubreddit}
+                                         fetchSubredditFromSuggestion={fetchSubredditFromSuggestion}/>
                     )}
 
                     {searchHistory.length > 0 && (

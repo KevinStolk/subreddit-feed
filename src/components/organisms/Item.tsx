@@ -9,7 +9,8 @@ import {
     Button,
     CardMedia,
     IconButton,
-    Tooltip, Box
+    Tooltip, Box,
+    Chip
 } from "@mui/material";
 import {NavigateBefore, NavigateNext, Web, ThumbUpAlt} from "@mui/icons-material";
 import {IItemsProps} from "../../App";
@@ -21,7 +22,8 @@ interface MediaItem {
     originalSrc: string;
     gifSrc: string | null;
     caption: string;
-    type: "image" | "video" | "gif";
+    type: "img" | "video" | "gif" | "image";
+    loading?: "lazy" | "eager";
 }
 
 export const Item = ({data}: { data: IItemsProps['data'] }) => {
@@ -73,7 +75,8 @@ export const Item = ({data}: { data: IItemsProps['data'] }) => {
                 originalSrc: url,
                 gifSrc: actualGifUrl,
                 caption: data.title,
-                type: "gif"
+                type: "gif",
+                loading: "lazy"
             });
             return items;
         }
@@ -85,12 +88,15 @@ export const Item = ({data}: { data: IItemsProps['data'] }) => {
                 if (!mediaData) return;
 
                 const mimeType = mediaData.m?.split("/")[0];
-                let mediaType: "image" | "video" | "gif" = "image";
-                if (mimeType === "video") mediaType = "video";
-                else if (mimeType === "image" && /\.gif$/i.test(mediaData.s?.u || "")) mediaType = "gif";
+                let mediaType: "img" | "video" | "gif" = "img";
+                if (mimeType === "video") {
+                    mediaType = "video";
+                } else if (mimeType === "img" && /\.gif$/i.test(mediaData.s?.u || "")) {
+                    mediaType = "gif";
+                }
 
                 const source = mediaData.s?.u || mediaData.p?.at(-1)?.u;
-                const gifSource = mediaType === "image" ? source?.replace(/preview;/g, "&") : "";
+                const gifSource = mediaType === "img" ? source?.replace(/preview;/g, "&") : "";
                 const gifUrl = gifSource?.replace("preview.redd.it", "i.redd.it");
 
                 if (source) {
@@ -113,7 +119,8 @@ export const Item = ({data}: { data: IItemsProps['data'] }) => {
             originalSrc: url,
             gifSrc: null,
             caption: data.title,
-            type: "image"
+            type: "img",
+            loading: "lazy"
         });
 
         return items;
@@ -150,53 +157,49 @@ export const Item = ({data}: { data: IItemsProps['data'] }) => {
                 }}>
                     <iframe src={item.src}
                             style={{position: "absolute", top: 0, left: 0, width: "100%", height: "100%"}}
-                            allowFullScreen title={item.caption}/>
+                            allowFullScreen title={item.caption} loading={"lazy"}/>
                 </div>
             );
         }
 
-        if (item.type === "gif") {
+        if (item.src.includes(".gif")) {
             return (
                 <div style={{position: "relative", ...style}}>
-                    <video
-                        autoPlay
-                        loop
-                        muted
-                        playsInline
+                    <img
                         style={{width: "100%", height: "100%", objectFit: "contain", borderRadius: 8}}
-                        poster={item.src.replace(/\.(mp4|gif)$/i, ".gif")}
                         onError={(e) => {
                             const target = e.target as HTMLVideoElement;
                             if (target.src !== item.originalSrc) target.src = item.originalSrc;
                         }}
+                        src={item.gifSrc || item.src}
+                        alt={item.caption}
+                        loading={"lazy"}
                     >
-                        <source src={item.gifSrc || item.src}
-                                type={item.src.endsWith(".mp4") ? "video/mp4" : "image/gif"}/>
-                    </video>
-                    <div style={{
+                    </img>
+                    <Box sx={{
                         position: "absolute",
                         bottom: 8,
                         right: 8,
-                        backgroundColor: "rgba(0,0,0,0.7)",
+                        backgroundColor: "primary.main",
                         color: "white",
                         padding: "4px 8px",
-                        borderRadius: 6,
-                        fontSize: "0.75rem"
+                        fontSize: "0.75rem",
+                        fontWeight: "600"
                     }}>GIF
-                    </div>
+                    </Box>
                 </div>
             );
         }
 
-        return <CardMedia component="img" src={item.src} alt={item.caption}
+        return <CardMedia component={item.type === 'gif' ? 'img' : item.type} src={item.src} alt={item.caption}
                           style={{opacity: 0, transition: "opacity 0.7s", borderRadius: 8, ...style}}
-                          onError={(e) => {
+                          onError={(e: React.SyntheticEvent<HTMLImageElement>) => {
                               const target = e.target as HTMLImageElement;
                               target.onerror = null;
                               target.src = 'https://pngimg.com/uploads/question_mark/question_mark_PNG1.png';
                               target.width = 155;
                           }}
-                          onLoad={(e) => e.currentTarget.classList.add("opacity-full")}/>;
+                          onLoad={(e: React.SyntheticEvent<HTMLImageElement>) => e.currentTarget.classList.add("opacity-full")}/>;
     };
 
     return (
@@ -253,7 +256,7 @@ export const Item = ({data}: { data: IItemsProps['data'] }) => {
 
                         {mediaItems.length === 0 ? (
                             <div style={{
-                                backgroundColor: "background.default",
+                                backgroundColor: "primary.main",
                                 height: 200,
                                 borderRadius: 2,
                                 display: "flex",
@@ -282,17 +285,16 @@ export const Item = ({data}: { data: IItemsProps['data'] }) => {
                                         {renderMedia(item, {width: "100%", height: "100%"})}
                                     </div>
                                 ))}
-                                {mediaItems.length > 0 && <div style={{
+                                {mediaItems.length > 0 && <Box sx={{
                                     position: "absolute",
                                     bottom: 8,
                                     right: 8,
-                                    backgroundColor: "rgba(0,0,0,0.65)",
+                                    backgroundColor: "primary.main",
                                     color: "white",
                                     padding: "4px 8px",
-                                    borderRadius: 6,
                                     fontSize: "0.75rem",
-                                    backdropFilter: "blur(3px)"
-                                }}>+{mediaItems.length} in total</div>}
+                                    fontWeight: "600",
+                                }}>+{mediaItems.length} in total</Box>}
                             </div>
                         ) : (
                             <>
@@ -326,21 +328,61 @@ export const Item = ({data}: { data: IItemsProps['data'] }) => {
             <Dialog open={lightboxOpen} onClose={closeLightbox} maxWidth="lg" fullWidth>
                 <DialogContent>
                     <Typography variant="subtitle1">{mediaItems[currentMediaIndex].caption}</Typography>
-                    <div className="dialog-content" style={{position: "relative",  width: "100%", overflow: "hidden"}}>
+                    {mediaItems[currentMediaIndex].type === "video" ?
+                        <Box sx={{
+                            backgroundColor: "primary.main",
+                            color: "white",
+                            padding: "4px 8px",
+                            fontSize: "0.75rem",
+                            fontWeight: "600",
+                            width: "fit-content",
+                        }}
+                        >
+                            VIDEO
+                        </Box>
+                        : ""
+                    }
+                    <div className="dialog-content" style={{position: "relative", width: "100%", overflow: "hidden"}}>
                         {mediaItems[currentMediaIndex].type === "video" ? (
-                            <iframe src={mediaItems[currentMediaIndex].src}
-                                    style={{width: "100%", height: "100%"}}
-                                    allowFullScreen title={mediaItems[currentMediaIndex].caption}/>
-                        ) : mediaItems[currentMediaIndex].type === "gif" ? (
-                            <img src={mediaItems[currentMediaIndex].gifSrc || mediaItems[currentMediaIndex].src}
-                                 style={{maxHeight: "70vh", maxWidth: "100%", height: "100%"}}/>
+                            <Box sx={{paddingTop: "0.5rem", paddingBottom: "0.5rem", height: "70vh"}}>
+                                <iframe src={mediaItems[currentMediaIndex].src}
+                                        style={{width: "100%", height: "100%"}}
+                                        allowFullScreen title={mediaItems[currentMediaIndex].caption} loading={"lazy"}/>
+                            </Box>
                         ) : (
-                            <img src={mediaItems[currentMediaIndex].src} alt={mediaItems[currentMediaIndex].caption}
-                                 style={{height: "100%", width: "100%"}} onError={(e) => {
-                                const t = e.target as HTMLImageElement;
-                                t.onerror = null;
-                                t.src = "https://pngimg.com/uploads/question_mark/question_mark_PNG1.png";
-                            }}/>
+                            <Box
+                                sx={{
+                                    display: "flex",
+                                    justifyContent: "center",
+                                    alignItems: "center",
+                                    maxHeight: "80vh",
+                                }}
+                            >
+                                <img src={mediaItems[currentMediaIndex].src} alt={mediaItems[currentMediaIndex].caption}
+                                     style={{
+                                         maxWidth: "100%",
+                                         maxHeight: "80vh",
+                                         objectFit: "contain"
+                                     }}
+                                     loading={"lazy"} onError={(e) => {
+                                    const t = e.target as HTMLImageElement;
+                                    t.onerror = null;
+                                    t.src = "https://pngimg.com/uploads/question_mark/question_mark_PNG1.png";
+                                }}/>
+                                {mediaItems[currentMediaIndex].src.includes(".gif") ?
+                                    <Box sx={{
+                                        position: "absolute",
+                                        bottom: 8,
+                                        right: 8,
+                                        backgroundColor: "primary.main",
+                                        color: "white",
+                                        padding: "4px 8px",
+                                        fontSize: "0.75rem"
+                                    }}>GIF
+                                    </Box>
+                                    : ""
+                                }
+                            </Box>
                         )}
 
                         {mediaItems.length > 1 && (
