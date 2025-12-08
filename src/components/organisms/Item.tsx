@@ -14,7 +14,9 @@ import {
 } from "@mui/material";
 import {NavigateBefore, NavigateNext, Web, ThumbUpAlt} from "@mui/icons-material";
 import {IItemsProps} from "../../App";
-import {useState, useRef} from "react";
+import {useState} from "react";
+import {Comments} from "../molecules/Comments";
+import {useComments} from "../../hooks/useComments";
 
 interface MediaItem {
     id: string;
@@ -36,6 +38,7 @@ export const Item = ({data}: { data: IItemsProps['data'] }) => {
     const videoLink = data.secure_media_embed?.media_domain_url;
     const image_src = data.url_overridden_by_dest;
     const fallback_url = data.url;
+    const {comments, loading, sort, setSort, loadMore} = useComments(data.subreddit, data.id, lightboxOpen);
     // const preview = data.preview?.images?.[0]?.source?.url;
 
     const getActualGifUrl = (url: string): string | null => {
@@ -411,6 +414,62 @@ export const Item = ({data}: { data: IItemsProps['data'] }) => {
                                 </IconButton>
                             </>
                         )}
+                        <Box sx={{pt: {xs: 2, sm: 0}}}>
+                            <Box sx={{display: "flex", gap: 2, mb: 1}}>
+                                <Chip
+                                    sx={{
+                                        fontWeight: 600,
+                                        textTransform: "uppercase",
+                                        fontSize: "0.9rem",
+                                        backgroundColor: sort === "best" ? "primary.main" : "",
+                                        color: "white",
+                                    }}
+                                    onClick={() => setSort("best")}
+                                    label={"Best"}
+                                ></Chip>
+
+                                <Chip
+                                    sx={{
+                                        fontWeight: 600,
+                                        textTransform: "uppercase",
+                                        fontSize: "0.9rem",
+                                        backgroundColor: sort === "top" ? "primary.main" : "",
+                                        color: "white",
+                                    }}
+                                    onClick={() => setSort("top")}
+                                    label={"Top"}
+                                ></Chip>
+
+                                <Chip
+                                    sx={{
+                                        fontWeight: 600,
+                                        textTransform: "uppercase",
+                                        fontSize: "0.9rem",
+                                        backgroundColor: sort === "new" ? "primary.main" : "",
+                                        color: "white",
+                                    }}
+                                    onClick={() => setSort("new")}
+                                    label={"New"}
+                                ></Chip>
+                            </Box>
+
+                            <Box sx={{
+                                pt: 1
+                            }}
+                                 onScroll={(e: React.UIEvent<HTMLDivElement>) => {
+                                     const target = e.target as HTMLDivElement;
+                                     const bottom = target.scrollHeight - target.scrollTop === target.clientHeight;
+                                     if (bottom) loadMore();
+                                 }}
+                            >
+                                {comments.map((c: any, i: number) => (
+                                    <Comments key={i} data={c} depth={0}/>
+                                ))}
+
+                                {loading && <Typography>Loading…</Typography>}
+                            </Box>
+                        </Box>
+
                     </div>
                 </DialogContent>
                 <DialogActions>
