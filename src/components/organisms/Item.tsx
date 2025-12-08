@@ -14,7 +14,7 @@ import {
 } from "@mui/material";
 import {NavigateBefore, NavigateNext, Web, ThumbUpAlt} from "@mui/icons-material";
 import {IItemsProps} from "../../App";
-import {useState} from "react";
+import {useEffect, useState} from "react";
 import {Comments} from "../molecules/Comments";
 import {useComments} from "../../hooks/useComments";
 
@@ -29,11 +29,10 @@ interface MediaItem {
 }
 
 export const Item = ({data}: { data: IItemsProps['data'] }) => {
-    const [lightboxOpen, setLightboxOpen] = useState(false);
-    const [currentMediaIndex, setCurrentMediaIndex] = useState(0);
-
-    // const videoRef = useRef<HTMLVideoElement>(null);
-    const [isGifPlaying, setIsGifPlaying] = useState(true);
+    const [lightboxOpen, setLightboxOpen] = useState<boolean>(false);
+    const [currentMediaIndex, setCurrentMediaIndex] = useState<number>(0);
+    const [isGifPlaying, setIsGifPlaying] = useState<boolean>(true);
+    const [fullscreen, setFullscreen] = useState<boolean>(false);
 
     const videoLink = data.secure_media_embed?.media_domain_url;
     const image_src = data.url_overridden_by_dest;
@@ -73,7 +72,7 @@ export const Item = ({data}: { data: IItemsProps['data'] }) => {
 
         if (actualGifUrl) {
             items.push({
-                id: "gif",
+                id: Math.random().toString(36).substring(2, 15),
                 src: actualGifUrl,
                 originalSrc: url,
                 gifSrc: actualGifUrl,
@@ -88,6 +87,7 @@ export const Item = ({data}: { data: IItemsProps['data'] }) => {
             data.gallery_data?.items.forEach((item) => {
                 const mediaId = item.media_id;
                 const mediaData = data.media_metadata?.[mediaId];
+
                 if (!mediaData) return;
 
                 const mimeType = mediaData.m?.split("/")[0];
@@ -117,7 +117,7 @@ export const Item = ({data}: { data: IItemsProps['data'] }) => {
         }
 
         if (url) items.push({
-            id: "image",
+            id: Math.random().toString(36).substring(2, 15),
             src: url,
             originalSrc: url,
             gifSrc: null,
@@ -148,6 +148,43 @@ export const Item = ({data}: { data: IItemsProps['data'] }) => {
         });
     };
 
+    const makeIFrameFullscreen = () => {
+        const iframe = document.querySelector(".video-iframe") as HTMLIFrameElement;
+        if (iframe) {
+            iframe.style.cssText = `
+                position: fixed;
+                width: 100vw;
+                height: 100vh;
+                top: 0;
+                left: 0;
+                z-index: 9998;
+            `;
+        }
+        setFullscreen(true)
+    };
+
+    const exitIFrameFullscreen = () => {
+        const iframe = document.querySelector(".video-iframe") as HTMLIFrameElement;
+        if (iframe) {
+            iframe.style.cssText = "";
+        }
+        setFullscreen(false)
+    }
+
+    useEffect(() => {
+        const handleEscape = (event: KeyboardEvent) => {
+            if (event.key === "Escape" && fullscreen) {
+                exitIFrameFullscreen();
+            }
+        };
+
+        document.addEventListener("keydown", handleEscape);
+
+        return () => {
+            document.removeEventListener("keydown", handleEscape);
+        };
+    }, [fullscreen]);
+
     const renderMedia = (item: MediaItem, style?: React.CSSProperties) => {
         if (item.type === "video") {
             return (
@@ -169,6 +206,7 @@ export const Item = ({data}: { data: IItemsProps['data'] }) => {
             return (
                 <div style={{position: "relative", ...style}}>
                     <img
+                        className={`post-image-${item.id}`}
                         style={{width: "100%", height: "100%", objectFit: "contain", borderRadius: 8}}
                         onError={(e) => {
                             const target = e.target as HTMLVideoElement;
@@ -327,10 +365,10 @@ export const Item = ({data}: { data: IItemsProps['data'] }) => {
                 </CardActionArea>
             </div>
 
-            {/* Lightbox Dialog */}
-            <Dialog open={lightboxOpen} onClose={closeLightbox} maxWidth="lg" fullWidth>
+            <Dialog className="lightbox-dialog" open={lightboxOpen} onClose={closeLightbox} maxWidth="lg" fullWidth>
                 <DialogContent>
                     <Typography variant="subtitle1">{mediaItems[currentMediaIndex].caption}</Typography>
+
                     {mediaItems[currentMediaIndex].type === "video" ?
                         <Box sx={{
                             backgroundColor: "primary.main",
@@ -345,12 +383,33 @@ export const Item = ({data}: { data: IItemsProps['data'] }) => {
                         </Box>
                         : ""
                     }
+                    {mediaItems[currentMediaIndex].type === "video" ? (
+                        <div style={{display: "flex", alignItems: "center", padding: "1rem 0 1rem 0", gap: "8"}}>
+                            <Button
+                                variant="contained"
+                                sx={{
+                                    backgroundColor: "primary.main",
+                                    color: "white",
+                                    padding: "4px 8px",
+                                    fontSize: "0.75rem",
+                                    fontWeight: "600",
+                                    display: {xs: "block", sm: "none"}
+                                }}
+                                onClick={makeIFrameFullscreen}
+                            >
+                                Fullscreen
+                            </Button>
+                        </div>
+                    ) : ""
+                    }
                     <div className="dialog-content" style={{position: "relative", width: "100%", overflow: "hidden"}}>
                         {mediaItems[currentMediaIndex].type === "video" ? (
                             <Box sx={{paddingTop: "0.5rem", paddingBottom: "0.5rem", height: "70vh"}}>
                                 <iframe src={mediaItems[currentMediaIndex].src}
                                         style={{width: "100%", height: "100%"}}
-                                        allowFullScreen title={mediaItems[currentMediaIndex].caption} loading={"lazy"}/>
+                                        allowFullScreen title={mediaItems[currentMediaIndex].caption} loading={"lazy"}
+                                        className="video-iframe"
+                                />
                             </Box>
                         ) : (
                             <Box
@@ -361,7 +420,8 @@ export const Item = ({data}: { data: IItemsProps['data'] }) => {
                                     maxHeight: "80vh",
                                 }}
                             >
-                                <img src={mediaItems[currentMediaIndex].src} alt={mediaItems[currentMediaIndex].caption}
+                                <img className={`post-image-${mediaItems[currentMediaIndex].id}`}
+                                     src={mediaItems[currentMediaIndex].src} alt={mediaItems[currentMediaIndex].caption}
                                      style={{
                                          maxWidth: "100%",
                                          maxHeight: "80vh",
@@ -414,7 +474,7 @@ export const Item = ({data}: { data: IItemsProps['data'] }) => {
                                 </IconButton>
                             </>
                         )}
-                        <Box sx={{pt: {xs: 2, sm: 0}}}>
+                        <Box sx={{pt: 2}}>
                             <Box sx={{display: "flex", gap: 2, mb: 1}}>
                                 <Chip
                                     sx={{
