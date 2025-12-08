@@ -75,6 +75,7 @@ function App() {
         fetchNextPage,
         searchHistory,
         clearHistory,
+        clearHistoryItem,
         fetchSubreddit,
         fetchSubredditFromSuggestion,
         suggestions
@@ -193,8 +194,14 @@ function App() {
                                 <Button size="small" onClick={clearHistory}>Clear</Button>
                             </Box>
                             <Box mt={1} sx={{display: "flex", flexWrap: "wrap", gap: 1, maxWidth: "500px"}}>
-                                {searchHistory.map(sub => (
-                                    <Chip key={sub} label={sub} onClick={() => setSubreddit(sub)} clickable/>
+                                {searchHistory.map((sub) => (
+                                    <Chip
+                                        key={sub}
+                                        label={sub}
+                                        onClick={() => setSubreddit(sub)}
+                                        onDelete={() => clearHistoryItem(sub)}
+                                        clickable
+                                    />
                                 ))}
                             </Box>
                         </Box>

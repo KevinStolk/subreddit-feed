@@ -28,6 +28,7 @@ export interface IUseSubreddit {
     setSort: (value: string) => void;
     subreddit: string;
     setSubreddit: (value: string) => void;
+    clearHistoryItem: (sub: string) => void;
     fetchNextPage: () => void;
     searchHistory: string[];
     clearHistory: () => void;
@@ -132,6 +133,14 @@ export const useSubreddit = (initialSubreddit = "", initialSort = "new"): IUseSu
         localStorage.removeItem("searchHistory");
     };
 
+    const clearHistoryItem = (sub: string) => {
+        setSearchHistory(prev => {
+            const newHistory = prev.filter(s => s !== sub);
+            localStorage.setItem("searchHistory", JSON.stringify(newHistory));
+            return newHistory;
+        });
+    };
+
     // On mount: load last subreddit if remembered
     useEffect(() => {
         const lastSub = localStorage.getItem("lastSubreddit");
@@ -151,6 +160,7 @@ export const useSubreddit = (initialSubreddit = "", initialSort = "new"): IUseSu
         fetchNextPage,
         searchHistory,
         clearHistory,
+        clearHistoryItem,
         fetchSubreddit,
         fetchSubredditFromSuggestion,
         suggestions,
