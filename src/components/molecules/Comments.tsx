@@ -1,8 +1,26 @@
-import {useState} from "react";
+import {useState, memo} from "react";
 import {Box, Typography, IconButton, Chip} from "@mui/material";
 import {ArrowRight, ArrowDropUp} from "@mui/icons-material";
 
-export const Comments = ({data, depth = 0}: any) => {
+interface CommentData {
+    data?: {
+        ups: number;
+        author: string;
+        body: string;
+        replies?: {
+            data?: {
+                children: CommentData[];
+            };
+        };
+    };
+}
+
+interface CommentsProps {
+    data: CommentData;
+    depth?: number;
+}
+
+export const Comments = memo(({data, depth = 0}: CommentsProps) => {
     const [collapsed, setCollapsed] = useState(false);
 
     if (!data || !data.data) return null;
@@ -39,13 +57,13 @@ export const Comments = ({data, depth = 0}: any) => {
                         {comment.body}
                     </Typography>
 
-                    {replies.map((r: any, i: number) => (
-                        <Comments key={i} data={r} depth={depth + 1}/>
+                    {replies.map((r: CommentData, i: number) => (
+                        <Comments key={`${depth}-${i}`} data={r} depth={depth + 1}/>
                     ))}
                 </>
             )}
         </Box>
     );
-};
+});
 
 

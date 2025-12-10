@@ -16,7 +16,7 @@ import {
     InputAdornment
 } from "@mui/material";
 import React from "react"
-import {useRef, ChangeEvent, useMemo} from "react";
+import {useRef, ChangeEvent, useMemo, useCallback} from "react";
 import InfiniteScroll from "react-infinite-scroll-component";
 import {createTheme, ThemeProvider} from "@mui/material/styles";
 import CssBaseline from "@mui/material/CssBaseline";
@@ -80,10 +80,9 @@ function App() {
         fetchSubredditFromSuggestion,
         suggestions
     } = useSubreddit();
-    const {darkMode, toggleDarkMode} = useSettings()
+    const {darkMode, toggleDarkMode, rememberLast, setRememberLast, saveHistory, setSaveHistory} = useSettings()
     const inputRef = useRef<HTMLInputElement>(null);
     const scrollElement = document.scrollingElement || document.body;
-    const settings = useSettings()
 
 
     const theme = useMemo(() => createTheme({
@@ -97,18 +96,18 @@ function App() {
         },
     }), [darkMode]);
 
-    const handleSubmit = (e: ChangeEvent<HTMLFormElement>) => {
+    const handleSubmit = useCallback((e: ChangeEvent<HTMLFormElement>) => {
         e.preventDefault();
         setSubreddit(subreddit);
         fetchSubreddit();
-    };
+    }, [subreddit, setSubreddit, fetchSubreddit]);
 
-    const handleInputChange = (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const handleInputChange = useCallback((e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         setSubreddit(e.target.value);
-    };
+    }, [setSubreddit]);
 
-    const scrollToTop = () => scrollElement.scrollTop = 0;
-    const scrollToBottom = () => scrollElement.scrollTop = scrollElement.scrollHeight;
+    const scrollToTop = useCallback(() => scrollElement.scrollTop = 0, [scrollElement]);
+    const scrollToBottom = useCallback(() => scrollElement.scrollTop = scrollElement.scrollHeight, [scrollElement]);
 
     return (
         <ThemeProvider theme={theme}>
@@ -116,8 +115,8 @@ function App() {
             <div className="App">
                 <div style={{display: "flex", justifyContent: "end", padding: "1rem"}}>
                     <SettingsMenu darkMode={darkMode} toggleDarkMode={toggleDarkMode}
-                                  rememberLast={settings.rememberLast} setRememberLast={settings.setRememberLast}
-                                  saveHistory={settings.saveHistory} setSaveHistory={settings.setSaveHistory}/>
+                                  rememberLast={rememberLast} setRememberLast={setRememberLast}
+                                  saveHistory={saveHistory} setSaveHistory={setSaveHistory}/>
                 </div>
                 <div className="container">
                     <form className="form" onSubmit={handleSubmit}

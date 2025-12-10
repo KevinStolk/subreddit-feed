@@ -10,11 +10,11 @@ import {
     CardMedia,
     IconButton,
     Tooltip, Box,
-    Chip
+    Chip, CircularProgress
 } from "@mui/material";
 import {NavigateBefore, NavigateNext, Web, ThumbUpAlt} from "@mui/icons-material";
 import {IItemsProps} from "../../App";
-import {useEffect, useState} from "react";
+import React, {useEffect, useState, useMemo, useCallback, memo} from "react";
 import {Comments} from "../molecules/Comments";
 import {useComments} from "../../hooks/useComments";
 
@@ -28,10 +28,9 @@ interface MediaItem {
     loading?: "lazy" | "eager";
 }
 
-export const Item = ({data}: { data: IItemsProps['data'] }) => {
+export const Item = memo(({data}: { data: IItemsProps['data'] }) => {
     const [lightboxOpen, setLightboxOpen] = useState<boolean>(false);
     const [currentMediaIndex, setCurrentMediaIndex] = useState<number>(0);
-    const [isGifPlaying, setIsGifPlaying] = useState<boolean>(true);
     const [fullscreen, setFullscreen] = useState<boolean>(false);
 
     const videoLink = data.secure_media_embed?.media_domain_url;
@@ -40,7 +39,7 @@ export const Item = ({data}: { data: IItemsProps['data'] }) => {
     const {comments, loading, sort, setSort, loadMore} = useComments(data.subreddit, data.id, lightboxOpen);
     // const preview = data.preview?.images?.[0]?.source?.url;
 
-    const getActualGifUrl = (url: string): string | null => {
+    const getActualGifUrl = useCallback((url: string): string | null => {
         if (!url) return null;
 
         if (/\.gif$/i.test(url)) return url;
@@ -50,14 +49,14 @@ export const Item = ({data}: { data: IItemsProps['data'] }) => {
             if (match) return `https://i.redd.it/${match[1].replace(/\..+$/, ".gif")}`;
         }
         return null;
-    };
+    }, []);
 
-    const getMediaItems = (): MediaItem[] => {
+    const mediaItems = useMemo((): MediaItem[] => {
         const items: MediaItem[] = [];
 
         if (videoLink) {
             items.push({
-                id: "video",
+                id: `${data.id}-video`,
                 src: videoLink,
                 originalSrc: videoLink,
                 gifSrc: null,
@@ -72,7 +71,7 @@ export const Item = ({data}: { data: IItemsProps['data'] }) => {
 
         if (actualGifUrl) {
             items.push({
-                id: Math.random().toString(36).substring(2, 15),
+                id: `${data.id}-gif`,
                 src: actualGifUrl,
                 originalSrc: url,
                 gifSrc: actualGifUrl,
@@ -117,7 +116,7 @@ export const Item = ({data}: { data: IItemsProps['data'] }) => {
         }
 
         if (url) items.push({
-            id: Math.random().toString(36).substring(2, 15),
+            id: `${data.id}-img`,
             src: url,
             originalSrc: url,
             gifSrc: null,
@@ -127,24 +126,20 @@ export const Item = ({data}: { data: IItemsProps['data'] }) => {
         });
 
         return items;
-    };
+    }, [data, videoLink, image_src, fallback_url, getActualGifUrl]);
 
-    const mediaItems = getMediaItems();
     const isGallery = data.is_gallery && mediaItems.length > 1;
 
     const openLightbox = (index: number) => {
         setCurrentMediaIndex(index);
         setLightboxOpen(true);
-        setIsGifPlaying(true);
     };
 
     const closeLightbox = () => setLightboxOpen(false);
 
     const navigateMedia = (direction: "prev" | "next") => {
         setCurrentMediaIndex((prev) => {
-            const newIndex = direction === "prev" ? (prev > 0 ? prev - 1 : mediaItems.length - 1) : (prev < mediaItems.length - 1 ? prev + 1 : 0);
-            setIsGifPlaying(true);
-            return newIndex;
+            return direction === "prev" ? (prev > 0 ? prev - 1 : mediaItems.length - 1) : (prev < mediaItems.length - 1 ? prev + 1 : 0);
         });
     };
 
@@ -324,6 +319,9 @@ export const Item = ({data}: { data: IItemsProps['data'] }) => {
                                         openLightbox(index);
                                     }}>
                                         {renderMedia(item, {width: "100%", height: "100%"})}
+                                        <span>
+                                            {data?.num_comments} comment{data?.num_comments !== "1" ? "s" : ""}
+                                        </span>
                                     </div>
                                 ))}
                                 {mediaItems.length > 0 && <Box sx={{
@@ -402,7 +400,7 @@ export const Item = ({data}: { data: IItemsProps['data'] }) => {
                         </div>
                     ) : ""
                     }
-                    <div className="dialog-content" style={{position: "relative", width: "100%", overflow: "hidden"}}>
+                    <div className="dialog-content" style={{width: "100%", overflow: "hidden"}}>
                         {mediaItems[currentMediaIndex].type === "video" ? (
                             <Box sx={{paddingTop: "0.5rem", paddingBottom: "0.5rem", height: "70vh"}}>
                                 <iframe src={mediaItems[currentMediaIndex].src}
@@ -474,61 +472,65 @@ export const Item = ({data}: { data: IItemsProps['data'] }) => {
                                 </IconButton>
                             </>
                         )}
-                        <Box sx={{pt: 2}}>
-                            <Box sx={{display: "flex", gap: 2, mb: 1}}>
-                                <Chip
-                                    sx={{
-                                        fontWeight: 600,
-                                        textTransform: "uppercase",
-                                        fontSize: "0.9rem",
-                                        backgroundColor: sort === "best" ? "primary.main" : "",
-                                        color: "white",
-                                    }}
-                                    onClick={() => setSort("best")}
-                                    label={"Best"}
-                                ></Chip>
+                        {comments.length > 0 ?
+                            <Box sx={{pt: 2}}>
+                                <Box sx={{display: "flex", gap: 2, mb: 1}}>
+                                    <Chip
+                                        sx={{
+                                            fontWeight: 600,
+                                            textTransform: "uppercase",
+                                            fontSize: "0.9rem",
+                                            backgroundColor: sort === "best" ? "primary.main" : "",
+                                            color: "white",
+                                        }}
+                                        onClick={() => setSort("best")}
+                                        label={"Best"}
+                                    ></Chip>
 
-                                <Chip
-                                    sx={{
-                                        fontWeight: 600,
-                                        textTransform: "uppercase",
-                                        fontSize: "0.9rem",
-                                        backgroundColor: sort === "top" ? "primary.main" : "",
-                                        color: "white",
-                                    }}
-                                    onClick={() => setSort("top")}
-                                    label={"Top"}
-                                ></Chip>
+                                    <Chip
+                                        sx={{
+                                            fontWeight: 600,
+                                            textTransform: "uppercase",
+                                            fontSize: "0.9rem",
+                                            backgroundColor: sort === "top" ? "primary.main" : "",
+                                            color: "white",
+                                        }}
+                                        onClick={() => setSort("top")}
+                                        label={"Top"}
+                                    ></Chip>
 
-                                <Chip
-                                    sx={{
-                                        fontWeight: 600,
-                                        textTransform: "uppercase",
-                                        fontSize: "0.9rem",
-                                        backgroundColor: sort === "new" ? "primary.main" : "",
-                                        color: "white",
-                                    }}
-                                    onClick={() => setSort("new")}
-                                    label={"New"}
-                                ></Chip>
+                                    <Chip
+                                        sx={{
+                                            fontWeight: 600,
+                                            textTransform: "uppercase",
+                                            fontSize: "0.9rem",
+                                            backgroundColor: sort === "new" ? "primary.main" : "",
+                                            color: "white",
+                                        }}
+                                        onClick={() => setSort("new")}
+                                        label={"New"}
+                                    ></Chip>
+                                </Box>
+
+                                <Box sx={{
+                                    pt: 1
+                                }}
+                                     onScroll={(e: React.UIEvent<HTMLDivElement>) => {
+                                         const target = e.target as HTMLDivElement;
+                                         const bottom = target.scrollHeight - target.scrollTop === target.clientHeight;
+                                         if (bottom) loadMore();
+                                     }}
+                                >
+                                    {comments.map((c: any, i: number) => (
+                                        <Comments key={i} data={c} depth={0}/>
+                                    ))}
+                                </Box>
                             </Box>
-
-                            <Box sx={{
-                                pt: 1
-                            }}
-                                 onScroll={(e: React.UIEvent<HTMLDivElement>) => {
-                                     const target = e.target as HTMLDivElement;
-                                     const bottom = target.scrollHeight - target.scrollTop === target.clientHeight;
-                                     if (bottom) loadMore();
-                                 }}
-                            >
-                                {comments.map((c: any, i: number) => (
-                                    <Comments key={i} data={c} depth={0}/>
-                                ))}
-
-                                {loading && <Typography>Loading…</Typography>}
-                            </Box>
-                        </Box>
+                            :
+                            <>
+                                {loading ? <CircularProgress size={20}/> : "No comments"}
+                            </>
+                        }
 
                     </div>
                 </DialogContent>
@@ -544,4 +546,4 @@ export const Item = ({data}: { data: IItemsProps['data'] }) => {
             </Dialog>
         </Card>
     );
-}
+});

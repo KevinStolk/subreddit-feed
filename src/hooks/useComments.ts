@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import axios from "axios";
 
 export const useComments = (
@@ -10,29 +10,45 @@ export const useComments = (
     const [after, setAfter] = useState<string | null>(null);
     const [sort, setSort] = useState("best");
     const [loading, setLoading] = useState(false);
+    const afterRef = useRef<string | null>(null);
 
-    const fetchComments = async (isAppend = false) => {
+    const fetchComments = useCallback(async (isAppend = false) => {
         if (!postId || !subreddit || !open) return;
 
         setLoading(true);
 
+        const currentAfter = isAppend ? afterRef.current : null;
         const url =
             `${process.env.REACT_APP_BASE_URL}redditComments/?sub=${subreddit}&&id=${postId}&sort=${sort}` +
-            (after ? `&after=${after}` : "");
+            (currentAfter ? `&after=${currentAfter}` : "");
 
-        const res = await axios.get(url);
+        try {
+            const res = await axios.get(url);
 
-        setComments(prev =>
-            isAppend ? [...prev, ...res.data.comments] : res.data.comments
-        );
+            setComments(prev =>
+                isAppend ? [...prev, ...res.data.comments] : res.data.comments
+            );
 
-        setAfter(res.data.after);
-        setLoading(false);
-    };
+            setAfter(res.data.after);
+            afterRef.current = res.data.after;
+        } catch (error) {
+            console.error("Failed to fetch comments:", error);
+            if (!isAppend) {
+                setComments([]);
+            }
+        } finally {
+            setLoading(false);
+        }
+    }, [postId, subreddit, open, sort]);
 
     useEffect(() => {
-        if (open) fetchComments(false);
-    }, [open, sort]);
+        if (open) {
+            setComments([]);
+            setAfter(null);
+            afterRef.current = null;
+            fetchComments(false);
+        }
+    }, [open, sort, postId, subreddit, fetchComments]);
 
     return {
         comments,
