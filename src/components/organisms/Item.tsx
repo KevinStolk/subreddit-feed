@@ -270,8 +270,6 @@ export const Item = memo(({data}: { data: IItemsProps['data'] }) => {
                           onLoad={(e: React.SyntheticEvent<HTMLImageElement>) => e.currentTarget.classList.add("opacity-full")}/>;
     };
 
-    console.log(data)
-
     return (
         <Card
             sx={{
