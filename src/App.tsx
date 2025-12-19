@@ -60,6 +60,15 @@ export interface IItemsProps {
                 m?: string;
             };
         };
+        is_video?: boolean;
+        media?: {
+            reddit_video?: {
+                fallback_url: string;
+                height?: number;
+                width?: number;
+                duration?: number;
+            };
+        };
     };
 }
 

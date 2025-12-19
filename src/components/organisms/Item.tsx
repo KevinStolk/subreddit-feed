@@ -66,6 +66,20 @@ export const Item = memo(({data}: { data: IItemsProps['data'] }) => {
             return items;
         }
 
+        // Check for Reddit native video (v.redd.it)
+        const redditVideoUrl = data.media?.reddit_video?.fallback_url;
+        if (data.is_video && redditVideoUrl) {
+            items.push({
+                id: `${data.id}-reddit-video`,
+                src: redditVideoUrl,
+                originalSrc: redditVideoUrl,
+                gifSrc: null,
+                caption: data.title,
+                type: "video"
+            });
+            return items;
+        }
+
         const url = image_src || fallback_url;
         const actualGifUrl = getActualGifUrl(url);
 
@@ -182,6 +196,24 @@ export const Item = memo(({data}: { data: IItemsProps['data'] }) => {
 
     const renderMedia = (item: MediaItem, style?: React.CSSProperties) => {
         if (item.type === "video") {
+            if (item.src.includes("v.redd.it")) {
+                return (
+                    <div style={{
+                        position: "relative",
+                        paddingBottom: "56.25%",
+                        height: "100%",
+                        overflow: "hidden",
+                        borderRadius: 8
+                    }}>
+                        <video
+                            controls
+                            style={{position: "absolute", top: 0, left: 0, width: "100%", height: "100%", objectFit: "contain"}}
+                            src={item.src}
+                            title={item.caption}
+                        />
+                    </div>
+                );
+            }
             return (
                 <div style={{
                     position: "relative",
@@ -237,6 +269,8 @@ export const Item = memo(({data}: { data: IItemsProps['data'] }) => {
                           }}
                           onLoad={(e: React.SyntheticEvent<HTMLImageElement>) => e.currentTarget.classList.add("opacity-full")}/>;
     };
+
+    console.log(data)
 
     return (
         <Card
@@ -403,11 +437,21 @@ export const Item = memo(({data}: { data: IItemsProps['data'] }) => {
                     <div className="dialog-content" style={{width: "100%", overflow: "hidden"}}>
                         {mediaItems[currentMediaIndex].type === "video" ? (
                             <Box sx={{paddingTop: "0.5rem", paddingBottom: "0.5rem", height: "70vh"}}>
-                                <iframe src={mediaItems[currentMediaIndex].src}
-                                        style={{width: "100%", height: "100%"}}
-                                        allowFullScreen title={mediaItems[currentMediaIndex].caption} loading={"lazy"}
+                                {mediaItems[currentMediaIndex].src.includes("v.redd.it") ? (
+                                    <video
+                                        controls
+                                        style={{width: "100%", height: "100%", objectFit: "contain"}}
+                                        src={mediaItems[currentMediaIndex].src}
+                                        title={mediaItems[currentMediaIndex].caption}
                                         className="video-iframe"
-                                />
+                                    />
+                                ) : (
+                                    <iframe src={mediaItems[currentMediaIndex].src}
+                                            style={{width: "100%", height: "100%"}}
+                                            allowFullScreen title={mediaItems[currentMediaIndex].caption} loading={"lazy"}
+                                            className="video-iframe"
+                                    />
+                                )}
                             </Box>
                         ) : (
                             <Box
