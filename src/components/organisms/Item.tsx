@@ -17,12 +17,14 @@ import {IItemsProps} from "../../App";
 import React, {useEffect, useState, useMemo, useCallback, memo} from "react";
 import {Comments} from "../molecules/Comments";
 import {useComments} from "../../hooks/useComments";
+import {HLSVideoPlayer} from "../atoms/HLSVideoPlayer";
 
 interface MediaItem {
     id: string;
     src: string;
     originalSrc: string;
     gifSrc: string | null;
+    hlsSrc?: string | null;
     caption: string;
     type: "img" | "video" | "gif" | "image";
     loading?: "lazy" | "eager";
@@ -66,13 +68,15 @@ export const Item = memo(({data}: { data: IItemsProps['data'] }) => {
             return items;
         }
 
-        // Check for Reddit native video (v.redd.it)
+        // Check for Reddit native video (v.redd.it) - use HLS for audio support
         const redditVideoUrl = data.media?.reddit_video?.fallback_url;
+        const redditHlsUrl = data.media?.reddit_video?.hls_url;
         if (data.is_video && redditVideoUrl) {
             items.push({
                 id: `${data.id}-reddit-video`,
                 src: redditVideoUrl,
                 originalSrc: redditVideoUrl,
+                hlsSrc: redditHlsUrl || null,
                 gifSrc: null,
                 caption: data.title,
                 type: "video"
@@ -194,6 +198,7 @@ export const Item = memo(({data}: { data: IItemsProps['data'] }) => {
         };
     }, [fullscreen]);
 
+
     const renderMedia = (item: MediaItem, style?: React.CSSProperties) => {
         if (item.type === "video") {
             if (item.src.includes("v.redd.it")) {
@@ -205,11 +210,11 @@ export const Item = memo(({data}: { data: IItemsProps['data'] }) => {
                         overflow: "hidden",
                         borderRadius: 8
                     }}>
-                        <video
-                            controls
-                            style={{position: "absolute", top: 0, left: 0, width: "100%", height: "100%", objectFit: "contain"}}
+                        <HLSVideoPlayer
                             src={item.src}
+                            hlsSrc={item.hlsSrc}
                             title={item.caption}
+                            style={{position: "absolute", top: 0, left: 0, width: "100%", height: "100%", objectFit: "contain"}}
                         />
                     </div>
                 );
@@ -399,7 +404,7 @@ export const Item = memo(({data}: { data: IItemsProps['data'] }) => {
                 <DialogContent>
                     <Typography variant="subtitle1">{mediaItems[currentMediaIndex].caption}</Typography>
 
-                    {mediaItems[currentMediaIndex].type === "video" ?
+                    {mediaItems[currentMediaIndex].type === "video" &&
                         <Box sx={{
                             backgroundColor: "primary.main",
                             color: "white",
@@ -411,7 +416,6 @@ export const Item = memo(({data}: { data: IItemsProps['data'] }) => {
                         >
                             VIDEO
                         </Box>
-                        : ""
                     }
                     {mediaItems[currentMediaIndex].type === "video" ? (
                         <div style={{display: "flex", alignItems: "center", padding: "1rem 0 1rem 0", gap: "8"}}>
@@ -436,12 +440,12 @@ export const Item = memo(({data}: { data: IItemsProps['data'] }) => {
                         {mediaItems[currentMediaIndex].type === "video" ? (
                             <Box sx={{paddingTop: "0.5rem", paddingBottom: "0.5rem", height: "70vh"}}>
                                 {mediaItems[currentMediaIndex].src.includes("v.redd.it") ? (
-                                    <video
-                                        controls
-                                        style={{width: "100%", height: "100%", objectFit: "contain"}}
+                                    <HLSVideoPlayer
                                         src={mediaItems[currentMediaIndex].src}
+                                        hlsSrc={mediaItems[currentMediaIndex].hlsSrc}
                                         title={mediaItems[currentMediaIndex].caption}
                                         className="video-iframe"
+                                        style={{width: "100%", height: "100%", objectFit: "contain"}}
                                     />
                                 ) : (
                                     <iframe src={mediaItems[currentMediaIndex].src}

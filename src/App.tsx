@@ -64,6 +64,7 @@ export interface IItemsProps {
         media?: {
             reddit_video?: {
                 fallback_url: string;
+                hls_url?: string;
                 height?: number;
                 width?: number;
                 duration?: number;
