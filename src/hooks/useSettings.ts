@@ -1,24 +1,24 @@
 import { useState } from "react";
+import { getThemeById, Theme } from "../themes";
 
 export interface ISettings {
-    darkMode: boolean;
+    themeId: string;
+    currentTheme: Theme;
     rememberLast: boolean;
     saveHistory: boolean;
-    toggleDarkMode: () => void;
+    setThemeId: (id: string) => void;
     setRememberLast: (value: boolean) => void;
     setSaveHistory: (value: boolean) => void;
 }
 
 export const useSettings = (): ISettings => {
-    const [darkMode, setDarkMode] = useState(localStorage.getItem("darkMode") === "true");
+    const [themeId, setThemeIdState] = useState(localStorage.getItem("themeId") || "dark");
     const [rememberLast, setRememberLast] = useState(localStorage.getItem("rememberLastSubreddit") === "true");
     const [saveHistory, setSaveHistory] = useState(localStorage.getItem("saveHistory") === "true");
 
-    const toggleDarkMode = () => {
-        setDarkMode((prev => {
-            localStorage.setItem("darkMode", String(!prev));
-            return !prev;
-        }));
+    const setThemeId = (id: string) => {
+        setThemeIdState(id);
+        localStorage.setItem("themeId", id);
     };
 
     const handleRememberLast = (value: boolean) => {
@@ -32,10 +32,11 @@ export const useSettings = (): ISettings => {
     };
 
     return {
-        darkMode,
+        themeId,
+        currentTheme: getThemeById(themeId),
         rememberLast,
         saveHistory,
-        toggleDarkMode,
+        setThemeId,
         setRememberLast: handleRememberLast,
         setSaveHistory: handleSaveHistory
     };

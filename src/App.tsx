@@ -26,6 +26,7 @@ import {SettingsMenu} from "./components/organisms/SettingsMenu";
 import {useSubreddit} from "./hooks/useSubreddit";
 import {useSettings} from "./hooks/useSettings";
 import {SuggestionsList} from "./components/molecules/SuggestionsList";
+import {isDarkTheme} from "./themes";
 
 const Item = React.lazy(() => import('./components/organisms/Item').then(module => ({default: module.Item})));
 
@@ -90,21 +91,25 @@ function App() {
         fetchSubredditFromSuggestion,
         suggestions
     } = useSubreddit();
-    const {darkMode, toggleDarkMode, rememberLast, setRememberLast, saveHistory, setSaveHistory} = useSettings()
+    const {currentTheme, themeId, setThemeId, rememberLast, setRememberLast, saveHistory, setSaveHistory} = useSettings()
     const inputRef = useRef<HTMLInputElement>(null);
     const scrollElement = document.scrollingElement || document.body;
 
 
     const theme = useMemo(() => createTheme({
         palette: {
-            mode: darkMode ? 'dark' : 'light',
-            primary: {main: '#e03e3e'},
+            mode: isDarkTheme(currentTheme) ? 'dark' : 'light',
+            primary: {main: currentTheme.primary},
             background: {
-                default: darkMode ? '#121212' : '#fff',
-                paper: darkMode ? '#1E1E1E' : '#fff',
+                default: currentTheme.background,
+                paper: currentTheme.paper,
+            },
+            text: {
+                primary: currentTheme.text,
+                secondary: currentTheme.textSecondary,
             },
         },
-    }), [darkMode]);
+    }), [currentTheme]);
 
     const handleSubmit = useCallback((e: ChangeEvent<HTMLFormElement>) => {
         e.preventDefault();
@@ -124,7 +129,7 @@ function App() {
             <CssBaseline/>
             <div className="App">
                 <div style={{display: "flex", justifyContent: "end", padding: "1rem"}}>
-                    <SettingsMenu darkMode={darkMode} toggleDarkMode={toggleDarkMode}
+                    <SettingsMenu themeId={themeId} setThemeId={setThemeId}
                                   rememberLast={rememberLast} setRememberLast={setRememberLast}
                                   saveHistory={saveHistory} setSaveHistory={setSaveHistory}/>
                 </div>
