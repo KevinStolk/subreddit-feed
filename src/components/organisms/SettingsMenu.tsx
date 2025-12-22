@@ -4,7 +4,10 @@ import {ThemeSelector} from "../molecules/ThemeSelector";
 import {GridToggleButton} from "../molecules/GridToggleButton";
 import {RememberToggle} from "../molecules/RememberToggle";
 import {HistoryToggle} from "../molecules/HistoryToggle";
+import {BlurToggle} from "../molecules/BlurToggle";
+import {ContentFiltersComponent} from "../molecules/ContentFilters";
 import {Settings} from "@mui/icons-material";
+import {ContentFilters} from "../../hooks/useSettings";
 
 interface Props {
     themeId: string;
@@ -13,9 +16,24 @@ interface Props {
     setRememberLast: (v: boolean) => void;
     saveHistory: boolean;
     setSaveHistory: (v: boolean) => void;
+    blurNsfw: boolean;
+    setBlurNsfw: (v: boolean) => void;
+    contentFilters: ContentFilters;
+    setContentFilters: (filters: ContentFilters) => void;
 }
 
-export const SettingsMenu = ({themeId, setThemeId, setRememberLast, rememberLast, saveHistory, setSaveHistory}: Props) => {
+export const SettingsMenu = ({
+    themeId,
+    setThemeId,
+    setRememberLast,
+    rememberLast,
+    saveHistory,
+    setSaveHistory,
+    blurNsfw,
+    setBlurNsfw,
+    contentFilters,
+    setContentFilters
+}: Props) => {
     const [open, setOpen] = useState(false);
     return <>
         <Button sx={{display: {xs: 'none', md: 'initial'}}}  variant="outlined" aria-label="settings" onClick={() => setOpen(true)}>
@@ -28,13 +46,17 @@ export const SettingsMenu = ({themeId, setThemeId, setRememberLast, rememberLast
             <Box sx={{width: 300, p: 2, maxHeight: '100vh', overflowY: 'auto'}}>
                 <Typography variant="h6" gutterBottom>Settings</Typography>
                 <Divider sx={{my: 1}}/>
-                <Typography variant="subtitle2" sx={{mb: 1}}>Theme</Typography>
+                <Typography variant="subtitle1" sx={{mb: 1}}>Theme</Typography>
                 <ThemeSelector currentThemeId={themeId} onThemeChange={setThemeId}/>
                 <Divider sx={{my: 2}}/>
-                <Typography variant="subtitle2" sx={{mb: 1}}>Layout</Typography>
+                <Typography variant="subtitle1" sx={{mb: 1}}>Layout</Typography>
                 <GridToggleButton/>
                 <Divider sx={{my: 2}}/>
-                <Typography variant="subtitle2" sx={{mb: 1}}>Preferences</Typography>
+                <Typography variant="subtitle1" sx={{mb: 1}}>Content</Typography>
+                <BlurToggle blurNsfw={blurNsfw} onChange={setBlurNsfw}/>
+                <ContentFiltersComponent filters={contentFilters} onChange={setContentFilters}/>
+                <Divider sx={{my: 2}}/>
+                <Typography variant="subtitle1" sx={{mb: 1}}>Preferences</Typography>
                 <RememberToggle onChange={setRememberLast} rememberLast={rememberLast}/>
                 <HistoryToggle saveHistory={saveHistory} onChange={setSaveHistory}/>
             </Box>

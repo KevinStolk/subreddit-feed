@@ -10,9 +10,10 @@ import {
     CardMedia,
     IconButton,
     Tooltip, Box,
-    Chip, CircularProgress
+    Chip, CircularProgress,
+    Snackbar
 } from "@mui/material";
-import {NavigateBefore, NavigateNext, Web, ThumbUpAlt} from "@mui/icons-material";
+import {NavigateBefore, NavigateNext, Web, ThumbUpAlt, Share, ContentCopy} from "@mui/icons-material";
 import {IItemsProps} from "../../App";
 import React, {useEffect, useState, useMemo, useCallback, memo} from "react";
 import {Comments} from "../molecules/Comments";
@@ -30,10 +31,48 @@ interface MediaItem {
     loading?: "lazy" | "eager";
 }
 
-export const Item = memo(({data}: { data: IItemsProps['data'] }) => {
+interface ItemProps {
+    data: IItemsProps['data'];
+    blurNsfw?: boolean;
+}
+
+export const Item = memo(({data, blurNsfw = false}: ItemProps) => {
     const [lightboxOpen, setLightboxOpen] = useState<boolean>(false);
     const [currentMediaIndex, setCurrentMediaIndex] = useState<number>(0);
     const [fullscreen, setFullscreen] = useState<boolean>(false);
+    const [snackbarOpen, setSnackbarOpen] = useState<boolean>(false);
+    const [snackbarMessage, setSnackbarMessage] = useState<string>("");
+    const [nsfwRevealed, setNsfwRevealed] = useState<boolean>(false);
+
+    const isNsfw = data.over_18 === true;
+    const shouldBlur = blurNsfw && isNsfw && !nsfwRevealed;
+
+    const postUrl = `https://reddit.com${data.permalink}`;
+
+    const handleShare = async () => {
+        if (navigator.share) {
+            try {
+                await navigator.share({
+                    title: data.title,
+                    text: `Check out this post from r/${data.subreddit}`,
+                    url: postUrl,
+                });
+            } catch (err) {
+                if ((err as Error).name !== 'AbortError') {
+                    handleCopyLink();
+                }
+            }
+        } else {
+            handleCopyLink();
+        }
+    };
+
+    const handleCopyLink = () => {
+        navigator.clipboard.writeText(postUrl).then(() => {
+            setSnackbarMessage("Link copied to clipboard!");
+            setSnackbarOpen(true);
+        });
+    };
 
     const videoLink = data.secure_media_embed?.media_domain_url;
     const image_src = data.url_overridden_by_dest;
@@ -291,10 +330,44 @@ export const Item = memo(({data}: { data: IItemsProps['data'] }) => {
                     transform: "translateY(-3px)",
                     boxShadow: 4,
                 },
+                position: "relative",
             }}
         >
+            {shouldBlur && (
+                <Box
+                    onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        setNsfwRevealed(true);
+                    }}
+                    sx={{
+                        position: "absolute",
+                        top: 0,
+                        left: 0,
+                        right: 0,
+                        bottom: 0,
+                        zIndex: 10,
+                        display: "flex",
+                        flexDirection: "column",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        backdropFilter: "blur(20px)",
+                        backgroundColor: "rgba(0, 0, 0, 0.5)",
+                        cursor: "pointer",
+                        borderRadius: 2,
+                    }}
+                >
+                    <Typography variant="h6" color="white" sx={{ mb: 1 }}>
+                        NSFW Content
+                    </Typography>
+                    <Typography variant="body2" color="rgba(255,255,255,0.7)">
+                        Click to reveal
+                    </Typography>
+                </Box>
+            )}
             <div
                 onClick={(e) => {
+                    if (shouldBlur) return;
                     if (mediaItems.length > 0) {
                         e.preventDefault();
                         e.stopPropagation();
@@ -583,13 +656,30 @@ export const Item = memo(({data}: { data: IItemsProps['data'] }) => {
                 <DialogActions>
                     <Typography variant="caption"
                                 color="text.secondary">{currentMediaIndex + 1} of {mediaItems.length}</Typography>
+                    <Box sx={{ flexGrow: 1 }} />
+                    <Tooltip title="Share" placement="top">
+                        <IconButton color="primary" onClick={handleShare}>
+                            <Share />
+                        </IconButton>
+                    </Tooltip>
+                    <Tooltip title="Copy link" placement="top">
+                        <IconButton color="primary" onClick={handleCopyLink}>
+                            <ContentCopy />
+                        </IconButton>
+                    </Tooltip>
                     <Tooltip title="Go to post" placement="top">
-                        <Button color="primary" href={"https://reddit.com" + data.permalink} target="_blank"
+                        <Button color="primary" href={postUrl} target="_blank"
                                 rel="noreferrer"><Web/></Button>
                     </Tooltip>
                     <Button onClick={closeLightbox} color="primary">Close</Button>
                 </DialogActions>
             </Dialog>
+            <Snackbar
+                open={snackbarOpen}
+                autoHideDuration={3000}
+                onClose={() => setSnackbarOpen(false)}
+                message={snackbarMessage}
+            />
         </Card>
     );
 });

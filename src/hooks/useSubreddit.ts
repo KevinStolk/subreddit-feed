@@ -18,6 +18,17 @@ export interface IPostData {
     is_gallery?: boolean;
     gallery_data?: { items: Array<{ media_id: string; caption?: string }> };
     media_metadata?: { [key: string]: { s?: { u: string }; p?: Array<{ u: string; y: string }>; m?: string } };
+    over_18?: boolean;
+    is_video?: boolean;
+    media?: {
+        reddit_video?: {
+            fallback_url: string;
+            hls_url?: string;
+            height?: number;
+            width?: number;
+            duration?: number;
+        };
+    };
 }
 
 export interface IUseSubreddit {

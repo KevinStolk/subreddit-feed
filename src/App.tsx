@@ -23,7 +23,7 @@ import CssBaseline from "@mui/material/CssBaseline";
 import {PostSkeleton} from "./components/molecules/PostSkeleton";
 import {StatusMessage} from "./components/molecules/StatusMessage";
 import {SettingsMenu} from "./components/organisms/SettingsMenu";
-import {useSubreddit} from "./hooks/useSubreddit";
+import {useSubreddit, IPostData} from "./hooks/useSubreddit";
 import {useSettings} from "./hooks/useSettings";
 import {SuggestionsList} from "./components/molecules/SuggestionsList";
 import {isDarkTheme} from "./themes";
@@ -71,6 +71,7 @@ export interface IItemsProps {
                 duration?: number;
             };
         };
+        over_18?: boolean;
     };
 }
 
@@ -91,9 +92,45 @@ function App() {
         fetchSubredditFromSuggestion,
         suggestions
     } = useSubreddit();
-    const {currentTheme, themeId, setThemeId, rememberLast, setRememberLast, saveHistory, setSaveHistory} = useSettings()
+    const {
+        currentTheme,
+        themeId,
+        setThemeId,
+        rememberLast,
+        setRememberLast,
+        saveHistory,
+        setSaveHistory,
+        blurNsfw,
+        setBlurNsfw,
+        contentFilters,
+        setContentFilters
+    } = useSettings();
     const inputRef = useRef<HTMLInputElement>(null);
     const scrollElement = document.scrollingElement || document.body;
+
+    const getPostMediaType = useCallback((post: IPostData): "video" | "gallery" | "image" | "text" => {
+        if (post.secure_media_embed?.media_domain_url || post.is_video) return "video";
+        if (post.is_gallery) return "gallery";
+        const url = post.url_overridden_by_dest || post.url;
+        if (url && /\.(jpg|jpeg|png|gif|webp)$/i.test(url)) return "image";
+        if (url && url.includes("i.redd.it")) return "image";
+        if (url && url.includes("preview.redd.it")) return "image";
+        if (post.selftext && !post.url_overridden_by_dest) return "text";
+        return "image";
+    }, []);
+
+    const filterPosts = useCallback((postsToFilter: IPostData[]): IPostData[] => {
+        return postsToFilter.filter(post => {
+            const mediaType = getPostMediaType(post);
+            if (mediaType === "video" && !contentFilters.showVideos) return false;
+            if (mediaType === "gallery" && !contentFilters.showGalleries) return false;
+            if (mediaType === "image" && !contentFilters.showImages) return false;
+            if (mediaType === "text" && !contentFilters.showText) return false;
+            return true;
+        });
+    }, [contentFilters, getPostMediaType]);
+
+    const filteredPosts = useMemo(() => filterPosts(posts), [posts, filterPosts]);
 
 
     const theme = useMemo(() => createTheme({
@@ -129,9 +166,18 @@ function App() {
             <CssBaseline/>
             <div className="App">
                 <div style={{display: "flex", justifyContent: "end", padding: "1rem"}}>
-                    <SettingsMenu themeId={themeId} setThemeId={setThemeId}
-                                  rememberLast={rememberLast} setRememberLast={setRememberLast}
-                                  saveHistory={saveHistory} setSaveHistory={setSaveHistory}/>
+                    <SettingsMenu
+                        themeId={themeId}
+                        setThemeId={setThemeId}
+                        rememberLast={rememberLast}
+                        setRememberLast={setRememberLast}
+                        saveHistory={saveHistory}
+                        setSaveHistory={setSaveHistory}
+                        blurNsfw={blurNsfw}
+                        setBlurNsfw={setBlurNsfw}
+                        contentFilters={contentFilters}
+                        setContentFilters={setContentFilters}
+                    />
                 </div>
                 <div className="container">
                     <form className="form" onSubmit={handleSubmit}
@@ -225,14 +271,20 @@ function App() {
 
                     <InfiniteScroll
                         className="grid"
-                        dataLength={posts.length}
+                        dataLength={filteredPosts.length}
                         next={fetchNextPage}
                         hasMore={true}
                         loader={loading && <><CircularProgress/><h1 className="load-text">Loading...</h1></>}
                     >
                         {loading && posts.length === 0
                             ? [...Array(5)].map((_, i) => <PostSkeleton key={i}/>)
-                            : posts.map(post => <Item key={post.id} data={post}/>)
+                            : filteredPosts.map(post => (
+                                <Item
+                                    key={post.id}
+                                    data={post}
+                                    blurNsfw={blurNsfw}
+                                />
+                            ))
                         }
                     </InfiniteScroll>
                 </div>
