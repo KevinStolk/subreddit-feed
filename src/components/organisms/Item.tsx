@@ -23,6 +23,7 @@ import {HLSVideoPlayer} from "../atoms/HLSVideoPlayer";
 interface MediaItem {
     id: string;
     src: string;
+    thumbnailSrc: string | null;
     originalSrc: string;
     gifSrc: string | null;
     hlsSrc?: string | null;
@@ -100,13 +101,34 @@ export const Item = memo(({data, blurNsfw = false, isBookmarked = false, onToggl
         return null;
     }, []);
 
+    const getThumbnailUrl = useCallback((): string | null => {
+        const resolutions = data.preview?.images?.[0]?.resolutions;
+        if (resolutions && resolutions.length > 0) {
+            // Find a resolution around 320-640px
+            const targetWidth = 480;
+            const sorted = [...resolutions].sort((a, b) =>
+                Math.abs(a.width - targetWidth) - Math.abs(b.width - targetWidth)
+            );
+            return sorted[0].url.replace(/&amp;/g, '&');
+        }
+
+        // Fallback to thumbnail if it's a valid URL
+        if (data.thumbnail && data.thumbnail.startsWith('http')) {
+            return data.thumbnail;
+        }
+
+        return null;
+    }, [data.preview, data.thumbnail]);
+
     const mediaItems = useMemo((): MediaItem[] => {
         const items: MediaItem[] = [];
+        const thumbnailUrl = getThumbnailUrl();
 
         if (videoLink) {
             items.push({
                 id: `${data.id}-video`,
                 src: videoLink,
+                thumbnailSrc: thumbnailUrl,
                 originalSrc: videoLink,
                 gifSrc: null,
                 caption: data.title,
@@ -115,13 +137,13 @@ export const Item = memo(({data, blurNsfw = false, isBookmarked = false, onToggl
             return items;
         }
 
-        // Check for Reddit native video (v.redd.it) - use HLS for audio support
         const redditVideoUrl = data.media?.reddit_video?.fallback_url;
         const redditHlsUrl = data.media?.reddit_video?.hls_url;
         if (data.is_video && redditVideoUrl) {
             items.push({
                 id: `${data.id}-reddit-video`,
                 src: redditVideoUrl,
+                thumbnailSrc: thumbnailUrl,
                 originalSrc: redditVideoUrl,
                 hlsSrc: redditHlsUrl || null,
                 gifSrc: null,
@@ -138,6 +160,7 @@ export const Item = memo(({data, blurNsfw = false, isBookmarked = false, onToggl
             items.push({
                 id: `${data.id}-gif`,
                 src: actualGifUrl,
+                thumbnailSrc: thumbnailUrl,
                 originalSrc: url,
                 gifSrc: actualGifUrl,
                 caption: data.title,
@@ -166,10 +189,20 @@ export const Item = memo(({data, blurNsfw = false, isBookmarked = false, onToggl
                 const gifSource = mediaType === "img" ? source?.replace(/preview;/g, "&") : "";
                 const gifUrl = gifSource?.replace("preview.redd.it", "i.redd.it");
 
+                let galleryThumbnail: string | null = null;
+                if (mediaData.p && mediaData.p.length > 0) {
+                    const targetWidth = 480;
+                    const sorted = [...mediaData.p].sort((a, b) =>
+                        Math.abs(a.width - targetWidth) - Math.abs(b.width - targetWidth)
+                    );
+                    galleryThumbnail = sorted[0].u.replace(/&amp;/g, '&');
+                }
+
                 if (source) {
                     items.push({
                         id: mediaId,
                         src: gifUrl || "",
+                        thumbnailSrc: galleryThumbnail,
                         originalSrc: source.replace(/&amp;/g, "&"),
                         gifSrc: gifUrl || "",
                         caption: item.caption || data.title,
@@ -183,6 +216,7 @@ export const Item = memo(({data, blurNsfw = false, isBookmarked = false, onToggl
         if (url) items.push({
             id: `${data.id}-img`,
             src: url,
+            thumbnailSrc: thumbnailUrl,
             originalSrc: url,
             gifSrc: null,
             caption: data.title,
@@ -191,7 +225,7 @@ export const Item = memo(({data, blurNsfw = false, isBookmarked = false, onToggl
         });
 
         return items;
-    }, [data, videoLink, image_src, fallback_url, getActualGifUrl]);
+    }, [data, videoLink, image_src, fallback_url, getActualGifUrl, getThumbnailUrl]);
 
     const isGallery = data.is_gallery && mediaItems.length > 1;
 
@@ -208,8 +242,30 @@ export const Item = memo(({data, blurNsfw = false, isBookmarked = false, onToggl
         });
     };
 
-    const renderMedia = (item: MediaItem, style?: React.CSSProperties) => {
+    const renderMedia = (item: MediaItem, style?: React.CSSProperties, useThumbnail: boolean = false) => {
         if (item.type === "video") {
+            if (useThumbnail && item.thumbnailSrc) {
+                return (
+                    <div style={{position: "relative", ...style}}>
+                        <img
+                            src={item.thumbnailSrc}
+                            alt={item.caption}
+                            style={{width: "100%", height: "100%", objectFit: "cover", borderRadius: 8}}
+                            loading="lazy"
+                        />
+                        <Box sx={{
+                            position: "absolute",
+                            bottom: 8,
+                            right: 8,
+                            backgroundColor: "primary.main",
+                            color: "white",
+                            padding: "4px 8px",
+                            fontSize: "0.75rem",
+                            fontWeight: "600"
+                        }}>VIDEO</Box>
+                    </div>
+                );
+            }
             if (item.src.includes("v.redd.it")) {
                 return (
                     <div style={{
@@ -251,6 +307,7 @@ export const Item = memo(({data, blurNsfw = false, isBookmarked = false, onToggl
         }
 
         if (item.src.includes(".gif")) {
+            const imageSrc = useThumbnail && item.thumbnailSrc ? item.thumbnailSrc : (item.gifSrc || item.src);
             return (
                 <div style={{position: "relative", ...style}}>
                     <img
@@ -260,7 +317,7 @@ export const Item = memo(({data, blurNsfw = false, isBookmarked = false, onToggl
                             const target = e.target as HTMLVideoElement;
                             if (target.src !== item.originalSrc) target.src = item.originalSrc;
                         }}
-                        src={item.gifSrc || item.src}
+                        src={imageSrc}
                         alt={item.caption}
                         loading={"lazy"}
                     >
@@ -280,13 +337,19 @@ export const Item = memo(({data, blurNsfw = false, isBookmarked = false, onToggl
             );
         }
 
-        return <CardMedia component={item.type === 'gif' ? 'img' : item.type} src={item.src} alt={item.caption}
+        const imageSrc = useThumbnail && item.thumbnailSrc ? item.thumbnailSrc : item.src;
+        return <CardMedia component={item.type === 'gif' ? 'img' : item.type} src={imageSrc} alt={item.caption}
                           style={{opacity: 0, transition: "opacity 0.7s", borderRadius: 8, ...style}}
                           onError={(e: React.SyntheticEvent<HTMLImageElement>) => {
                               const target = e.target as HTMLImageElement;
                               target.onerror = null;
-                              target.src = 'https://pngimg.com/uploads/question_mark/question_mark_PNG1.png';
-                              target.width = 155;
+                              // On error, try full resolution before fallback
+                              if (useThumbnail && item.thumbnailSrc && target.src === item.thumbnailSrc) {
+                                  target.src = item.src;
+                              } else {
+                                  target.src = 'https://pngimg.com/uploads/question_mark/question_mark_PNG1.png';
+                                  target.width = 155;
+                              }
                           }}
                           onLoad={(e: React.SyntheticEvent<HTMLImageElement>) => e.currentTarget.classList.add("opacity-full")}/>;
     };
@@ -405,7 +468,7 @@ export const Item = memo(({data, blurNsfw = false, isBookmarked = false, onToggl
                                         e.stopPropagation();
                                         openLightbox(index);
                                     }}>
-                                        {renderMedia(item, {width: "100%", height: "100%"})}
+                                        {renderMedia(item, {width: "100%", height: "100%"}, true)}
                                         <span>
                                             {data?.num_comments} comment{data?.num_comments !== "1" ? "s" : ""}
                                         </span>
@@ -428,7 +491,7 @@ export const Item = memo(({data, blurNsfw = false, isBookmarked = false, onToggl
                                     width: "100%",
                                     height: "100%",
                                     cursor: mediaItems.length > 0 ? "pointer" : "default"
-                                })}
+                                }, true)}
                                 <Box sx={{
                                     '& span': {
                                         color: 'inherit',

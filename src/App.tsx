@@ -38,7 +38,15 @@ export interface IItemsProps {
         created_utc: number;
         author: string;
         subreddit: string;
-        preview: any;
+        preview?: {
+            images?: Array<{
+                source: { url: string; width: number; height: number };
+                resolutions: Array<{ url: string; width: number; height: number }>;
+            }>;
+        };
+        thumbnail?: string;
+        thumbnail_width?: number;
+        thumbnail_height?: number;
         id: string;
         url_overridden_by_dest: string;
         url: string;
@@ -58,7 +66,7 @@ export interface IItemsProps {
         media_metadata?: {
             [key: string]: {
                 s?: { u: string };
-                p?: Array<{ u: string, y: string }>;
+                p?: Array<{ u: string; width: number; height: number }>;
                 m?: string;
             };
         };
@@ -134,7 +142,6 @@ function App() {
     }, [contentFilters, getPostMediaType]);
 
     const filteredPosts = useMemo(() => filterPosts(posts), [posts, filterPosts]);
-
 
     const theme = useMemo(() => createTheme({
         palette: {

@@ -7,7 +7,15 @@ export interface IPostData {
     created_utc: number;
     author: string;
     subreddit: string;
-    preview: any;
+    preview?: {
+        images?: Array<{
+            source: { url: string; width: number; height: number };
+            resolutions: Array<{ url: string; width: number; height: number }>;
+        }>;
+    };
+    thumbnail?: string;
+    thumbnail_width?: number;
+    thumbnail_height?: number;
     id: string;
     url_overridden_by_dest: string;
     url: string;
@@ -17,7 +25,7 @@ export interface IPostData {
     secure_media_embed: { media_domain_url: string };
     is_gallery?: boolean;
     gallery_data?: { items: Array<{ media_id: string; caption?: string }> };
-    media_metadata?: { [key: string]: { s?: { u: string }; p?: Array<{ u: string; y: string }>; m?: string } };
+    media_metadata?: { [key: string]: { s?: { u: string }; p?: Array<{ u: string; width: number; height: number }>; m?: string } };
     over_18?: boolean;
     is_video?: boolean;
     media?: {
