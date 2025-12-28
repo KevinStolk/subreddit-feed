@@ -32,14 +32,13 @@ interface MediaItem {
 }
 
 interface ItemProps {
-    data: IItemsProps['data'];
+    data: IItemsProps["data"];
     blurNsfw?: boolean;
 }
 
 export const Item = memo(({data, blurNsfw = false}: ItemProps) => {
     const [lightboxOpen, setLightboxOpen] = useState<boolean>(false);
     const [currentMediaIndex, setCurrentMediaIndex] = useState<number>(0);
-    const [fullscreen, setFullscreen] = useState<boolean>(false);
     const [snackbarOpen, setSnackbarOpen] = useState<boolean>(false);
     const [snackbarMessage, setSnackbarMessage] = useState<string>("");
     const [nsfwRevealed, setNsfwRevealed] = useState<boolean>(false);
@@ -78,7 +77,6 @@ export const Item = memo(({data, blurNsfw = false}: ItemProps) => {
     const image_src = data.url_overridden_by_dest;
     const fallback_url = data.url;
     const {comments, loading, sort, setSort, loadMore} = useComments(data.subreddit, data.id, lightboxOpen);
-    // const preview = data.preview?.images?.[0]?.source?.url;
 
     const getActualGifUrl = useCallback((url: string): string | null => {
         if (!url) return null;
@@ -200,44 +198,6 @@ export const Item = memo(({data, blurNsfw = false}: ItemProps) => {
         });
     };
 
-    const makeIFrameFullscreen = () => {
-        const iframe = document.querySelector(".video-iframe") as HTMLIFrameElement;
-        if (iframe) {
-            iframe.style.cssText = `
-                position: fixed;
-                width: 100vw;
-                height: 100vh;
-                top: 0;
-                left: 0;
-                z-index: 9998;
-            `;
-        }
-        setFullscreen(true)
-    };
-
-    const exitIFrameFullscreen = () => {
-        const iframe = document.querySelector(".video-iframe") as HTMLIFrameElement;
-        if (iframe) {
-            iframe.style.cssText = "";
-        }
-        setFullscreen(false)
-    }
-
-    useEffect(() => {
-        const handleEscape = (event: KeyboardEvent) => {
-            if (event.key === "Escape" && fullscreen) {
-                exitIFrameFullscreen();
-            }
-        };
-
-        document.addEventListener("keydown", handleEscape);
-
-        return () => {
-            document.removeEventListener("keydown", handleEscape);
-        };
-    }, [fullscreen]);
-
-
     const renderMedia = (item: MediaItem, style?: React.CSSProperties) => {
         if (item.type === "video") {
             if (item.src.includes("v.redd.it")) {
@@ -253,7 +213,14 @@ export const Item = memo(({data, blurNsfw = false}: ItemProps) => {
                             src={item.src}
                             hlsSrc={item.hlsSrc}
                             title={item.caption}
-                            style={{position: "absolute", top: 0, left: 0, width: "100%", height: "100%", objectFit: "contain"}}
+                            style={{
+                                position: "absolute",
+                                top: 0,
+                                left: 0,
+                                width: "100%",
+                                height: "100%",
+                                objectFit: "contain"
+                            }}
                         />
                     </div>
                 );
@@ -357,7 +324,7 @@ export const Item = memo(({data, blurNsfw = false}: ItemProps) => {
                         borderRadius: 2,
                     }}
                 >
-                    <Typography variant="h6" color="white" sx={{ mb: 1 }}>
+                    <Typography variant="h6" color="white" sx={{mb: 1}}>
                         NSFW Content
                     </Typography>
                     <Typography variant="body2" color="rgba(255,255,255,0.7)">
@@ -490,25 +457,6 @@ export const Item = memo(({data, blurNsfw = false}: ItemProps) => {
                             VIDEO
                         </Box>
                     }
-                    {mediaItems[currentMediaIndex].type === "video" ? (
-                        <div style={{display: "flex", alignItems: "center", padding: "1rem 0 1rem 0", gap: "8"}}>
-                            <Button
-                                variant="contained"
-                                sx={{
-                                    backgroundColor: "primary.main",
-                                    color: "white",
-                                    padding: "4px 8px",
-                                    fontSize: "0.75rem",
-                                    fontWeight: "600",
-                                    display: {xs: "block", sm: "none"}
-                                }}
-                                onClick={makeIFrameFullscreen}
-                            >
-                                Fullscreen
-                            </Button>
-                        </div>
-                    ) : ""
-                    }
                     <div className="dialog-content" style={{width: "100%", overflow: "hidden"}}>
                         {mediaItems[currentMediaIndex].type === "video" ? (
                             <Box sx={{paddingTop: "0.5rem", paddingBottom: "0.5rem", height: "70vh"}}>
@@ -517,13 +465,13 @@ export const Item = memo(({data, blurNsfw = false}: ItemProps) => {
                                         src={mediaItems[currentMediaIndex].src}
                                         hlsSrc={mediaItems[currentMediaIndex].hlsSrc}
                                         title={mediaItems[currentMediaIndex].caption}
-                                        className="video-iframe"
                                         style={{width: "100%", height: "100%", objectFit: "contain"}}
                                     />
                                 ) : (
                                     <iframe src={mediaItems[currentMediaIndex].src}
                                             style={{width: "100%", height: "100%"}}
-                                            allowFullScreen title={mediaItems[currentMediaIndex].caption} loading={"lazy"}
+                                            allowFullScreen title={mediaItems[currentMediaIndex].caption}
+                                            loading={"lazy"}
                                             className="video-iframe"
                                     />
                                 )}
@@ -656,15 +604,15 @@ export const Item = memo(({data, blurNsfw = false}: ItemProps) => {
                 <DialogActions>
                     <Typography variant="caption"
                                 color="text.secondary">{currentMediaIndex + 1} of {mediaItems.length}</Typography>
-                    <Box sx={{ flexGrow: 1 }} />
+                    <Box sx={{flexGrow: 1}}/>
                     <Tooltip title="Share" placement="top">
                         <IconButton color="primary" onClick={handleShare}>
-                            <Share />
+                            <Share/>
                         </IconButton>
                     </Tooltip>
                     <Tooltip title="Copy link" placement="top">
                         <IconButton color="primary" onClick={handleCopyLink}>
-                            <ContentCopy />
+                            <ContentCopy/>
                         </IconButton>
                     </Tooltip>
                     <Tooltip title="Go to post" placement="top">

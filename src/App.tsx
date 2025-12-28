@@ -161,6 +161,8 @@ function App() {
     const scrollToTop = useCallback(() => scrollElement.scrollTop = 0, [scrollElement]);
     const scrollToBottom = useCallback(() => scrollElement.scrollTop = scrollElement.scrollHeight, [scrollElement]);
 
+    const subSortOptions = ["Hot", "New", "Top", "Rising"];
+
     return (
         <ThemeProvider theme={theme}>
             <CssBaseline/>
@@ -233,10 +235,9 @@ function App() {
                             <InputLabel>Sort</InputLabel>
                             <Select value={sort} onChange={e => setSort(e.target.value)} label="Sort"
                             >
-                                <MenuItem value="hot">Hot</MenuItem>
-                                <MenuItem value="new">New</MenuItem>
-                                <MenuItem value="top">Top</MenuItem>
-                                <MenuItem value="rising">Rising</MenuItem>
+                                {subSortOptions.map((opt: string, i: number) => (
+                                    <MenuItem value={opt.toLowerCase()} key={i}>{opt}</MenuItem>
+                                ))}
                             </Select>
                         </FormControl>
                     </form>
