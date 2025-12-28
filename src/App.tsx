@@ -1,4 +1,4 @@
-import {ArrowDownward, ArrowUpward} from "@mui/icons-material";
+import {ArrowDownward, ArrowUpward, ArrowBack} from "@mui/icons-material";
 import {
     CircularProgress,
     SpeedDial,
@@ -16,7 +16,7 @@ import {
     InputAdornment
 } from "@mui/material";
 import React from "react"
-import {useRef, ChangeEvent, useMemo, useCallback} from "react";
+import {useState, useRef, ChangeEvent, useMemo, useCallback} from "react";
 import InfiniteScroll from "react-infinite-scroll-component";
 import {createTheme, ThemeProvider} from "@mui/material/styles";
 import CssBaseline from "@mui/material/CssBaseline";
@@ -25,6 +25,7 @@ import {StatusMessage} from "./components/molecules/StatusMessage";
 import {SettingsMenu} from "./components/organisms/SettingsMenu";
 import {useSubreddit, IPostData} from "./hooks/useSubreddit";
 import {useSettings} from "./hooks/useSettings";
+import {useBookmarks} from "./hooks/useBookmarks";
 import {SuggestionsList} from "./components/molecules/SuggestionsList";
 import {isDarkTheme} from "./themes";
 
@@ -105,6 +106,8 @@ function App() {
         contentFilters,
         setContentFilters
     } = useSettings();
+    const {bookmarks, isBookmarked, toggleBookmark} = useBookmarks();
+    const [showingBookmarks, setShowingBookmarks] = useState(false);
     const inputRef = useRef<HTMLInputElement>(null);
     const scrollElement = document.scrollingElement || document.body;
 
@@ -179,115 +182,153 @@ function App() {
                         setBlurNsfw={setBlurNsfw}
                         contentFilters={contentFilters}
                         setContentFilters={setContentFilters}
+                        bookmarkCount={bookmarks.length}
+                        onViewBookmarks={() => setShowingBookmarks(true)}
                     />
                 </div>
                 <div className="container">
-                    <form className="form" onSubmit={handleSubmit}
-                          style={{
-                              display: "flex",
-                              gap: "1rem",
-                              margin: "0 auto",
-                              justifyContent: "center",
-                              alignItems: "center"
-                          }}
-                    >
-                        <TextField
-                            inputRef={inputRef}
-                            variant="outlined"
-                            value={subreddit}
-                            onChange={handleInputChange}
-                            label="Subreddit"
-
-                            sx={{
-                                width: {
-                                    xs: "100%",
-                                    sm: "auto"
-                                },
-                            }}
-                            InputProps={{
-                                endAdornment: (
-                                    <InputAdornment position="end">
-                                        {loading && <CircularProgress size={20}/>}
-                                    </InputAdornment>
-                                )
-                            }}
-                        />
-                        <Button type="submit" variant="contained" color="primary" disabled={loading}
-                                sx={{
-                                    width: {
-                                        xs: "100%",
-                                        sm: "auto"
-                                    },
-                                }}
-                        >
-                            {loading ? "Searching..." : "Search"}
-                        </Button>
-
-                        <FormControl variant="outlined"
-                                     size={"small"}
-                                     sx={{
-                                         width: {
-                                             xs: "100%",
-                                             sm: "auto"
-                                         },
-                                     }}
-                        >
-                            <InputLabel>Sort</InputLabel>
-                            <Select value={sort} onChange={e => setSort(e.target.value)} label="Sort"
+                    {showingBookmarks ? (
+                        <>
+                            <Box display="flex" alignItems="center" gap={2} mb={2}>
+                                <Button
+                                    startIcon={<ArrowBack/>}
+                                    onClick={() => setShowingBookmarks(false)}
+                                    variant="outlined"
+                                >
+                                    Back to Feed
+                                </Button>
+                                <Typography variant="h5">
+                                    Bookmarks ({bookmarks.length})
+                                </Typography>
+                            </Box>
+                            {bookmarks.length === 0 ? (
+                                <StatusMessage type="info" message="No bookmarks yet. Open a post and click the bookmark icon to save it."/>
+                            ) : (
+                                <div className="grid">
+                                    {bookmarks.map(post => (
+                                        <Item
+                                            key={post.id}
+                                            data={post}
+                                            blurNsfw={blurNsfw}
+                                            isBookmarked={isBookmarked(post.id)}
+                                            onToggleBookmark={() => toggleBookmark(post)}
+                                        />
+                                    ))}
+                                </div>
+                            )}
+                        </>
+                    ) : (
+                        <>
+                            <form className="form" onSubmit={handleSubmit}
+                                  style={{
+                                      display: "flex",
+                                      gap: "1rem",
+                                      margin: "0 auto",
+                                      justifyContent: "center",
+                                      alignItems: "center"
+                                  }}
                             >
-                                {subSortOptions.map((opt: string, i: number) => (
-                                    <MenuItem value={opt.toLowerCase()} key={i}>{opt}</MenuItem>
-                                ))}
-                            </Select>
-                        </FormControl>
-                    </form>
+                                <TextField
+                                    inputRef={inputRef}
+                                    variant="outlined"
+                                    value={subreddit}
+                                    onChange={handleInputChange}
+                                    label="Subreddit"
 
-
-                    {suggestions.length > 0 && (
-                        <SuggestionsList suggestions={suggestions} setSubreddit={setSubreddit}
-                                         fetchSubredditFromSuggestion={fetchSubredditFromSuggestion}/>
-                    )}
-
-                    {searchHistory.length > 0 && (
-                        <Box mt={2} mb={2} display="flex" flexDirection="column" alignItems="center">
-                            <Box display="flex" justifyContent="space-between" width="100%" maxWidth="500px">
-                                <Typography variant="body2" color="text.secondary">Recent Searches:</Typography>
-                                <Button size="small" onClick={clearHistory}>Clear</Button>
-                            </Box>
-                            <Box mt={1} sx={{display: "flex", flexWrap: "wrap", gap: 1, maxWidth: "500px"}}>
-                                {searchHistory.map((sub) => (
-                                    <Chip
-                                        key={sub}
-                                        label={sub}
-                                        onClick={() => setSubreddit(sub)}
-                                        onDelete={() => clearHistoryItem(sub)}
-                                        clickable
-                                    />
-                                ))}
-                            </Box>
-                        </Box>
-                    )}
-
-                    {error && <StatusMessage type="error" message={error}/>}
-
-                    <InfiniteScroll
-                        className="grid"
-                        dataLength={filteredPosts.length}
-                        next={fetchNextPage}
-                        hasMore={true}
-                        loader={loading && <><CircularProgress/><h1 className="load-text">Loading...</h1></>}
-                    >
-                        {loading && posts.length === 0
-                            ? [...Array(5)].map((_, i) => <PostSkeleton key={i}/>)
-                            : filteredPosts.map(post => (
-                                <Item
-                                    key={post.id}
-                                    data={post}
-                                    blurNsfw={blurNsfw}
+                                    sx={{
+                                        width: {
+                                            xs: "100%",
+                                            sm: "auto"
+                                        },
+                                    }}
+                                    InputProps={{
+                                        endAdornment: (
+                                            <InputAdornment position="end">
+                                                {loading && <CircularProgress size={20}/>}
+                                            </InputAdornment>
+                                        )
+                                    }}
                                 />
-                            ))
-                        }
-                    </InfiniteScroll>
+                                <Button type="submit" variant="contained" color="primary" disabled={loading}
+                                        sx={{
+                                            width: {
+                                                xs: "100%",
+                                                sm: "auto"
+                                            },
+                                        }}
+                                >
+                                    {loading ? "Searching..." : "Search"}
+                                </Button>
+
+                                <FormControl variant="outlined"
+                                             size={"small"}
+                                             sx={{
+                                                 width: {
+                                                     xs: "100%",
+                                                     sm: "auto"
+                                                 },
+                                             }}
+                                >
+                                    <InputLabel>Sort</InputLabel>
+                                    <Select value={sort} onChange={e => setSort(e.target.value)} label="Sort"
+                                    >
+                                        {subSortOptions.map((opt: string, i: number) => (
+                                            <MenuItem value={opt.toLowerCase()} key={i}>{opt}</MenuItem>
+                                        ))}
+                                    </Select>
+                                </FormControl>
+                            </form>
+
+
+                            {suggestions.length > 0 && (
+                                <SuggestionsList suggestions={suggestions} setSubreddit={setSubreddit}
+                                                 fetchSubredditFromSuggestion={fetchSubredditFromSuggestion}/>
+                            )}
+
+                            {searchHistory.length > 0 && (
+                                <Box mt={2} mb={2} display="flex" flexDirection="column" alignItems="center">
+                                    <Box display="flex" justifyContent="space-between" width="100%" maxWidth="500px">
+                                        <Typography variant="body2" color="text.secondary">Recent Searches:</Typography>
+                                        <Button size="small" onClick={clearHistory}>Clear</Button>
+                                    </Box>
+                                    <Box mt={1} sx={{display: "flex", flexWrap: "wrap", gap: 1, maxWidth: "500px"}}>
+                                        {searchHistory.map((sub) => (
+                                            <Chip
+                                                key={sub}
+                                                label={sub}
+                                                onClick={() => setSubreddit(sub)}
+                                                onDelete={() => clearHistoryItem(sub)}
+                                                clickable
+                                            />
+                                        ))}
+                                    </Box>
+                                </Box>
+                            )}
+
+                            {error && <StatusMessage type="error" message={error}/>}
+
+                            <InfiniteScroll
+                                className="grid"
+                                dataLength={filteredPosts.length}
+                                next={fetchNextPage}
+                                hasMore={true}
+                                loader={loading && <><CircularProgress/><h1 className="load-text">Loading...</h1></>}
+                            >
+                                {loading && posts.length === 0
+                                    ? [...Array(5)].map((_, i) => <PostSkeleton key={i}/>)
+                                    : filteredPosts.map(post => (
+                                        <Item
+                                            key={post.id}
+                                            data={post}
+                                            blurNsfw={blurNsfw}
+                                            isBookmarked={isBookmarked(post.id)}
+                                            onToggleBookmark={() => toggleBookmark(post)}
+                                        />
+                                    ))
+                                }
+                            </InfiniteScroll>
+                        </>
+                    )}
                 </div>
 
                 <SpeedDial

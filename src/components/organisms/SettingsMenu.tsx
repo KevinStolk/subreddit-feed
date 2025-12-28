@@ -1,4 +1,4 @@
-import {Drawer, Box, Typography, Divider, Button, IconButton} from "@mui/material";
+import {Drawer, Box, Typography, Divider, Button, IconButton, Badge} from "@mui/material";
 import {useState} from "react";
 import {ThemeSelector} from "../molecules/ThemeSelector";
 import {GridToggleButton} from "../molecules/GridToggleButton";
@@ -6,7 +6,7 @@ import {RememberToggle} from "../molecules/RememberToggle";
 import {HistoryToggle} from "../molecules/HistoryToggle";
 import {BlurToggle} from "../molecules/BlurToggle";
 import {ContentFiltersComponent} from "../molecules/ContentFilters";
-import {Settings} from "@mui/icons-material";
+import {Settings, Bookmark} from "@mui/icons-material";
 import {ContentFilters} from "../../hooks/useSettings";
 
 interface Props {
@@ -20,6 +20,8 @@ interface Props {
     setBlurNsfw: (v: boolean) => void;
     contentFilters: ContentFilters;
     setContentFilters: (filters: ContentFilters) => void;
+    bookmarkCount: number;
+    onViewBookmarks: () => void;
 }
 
 export const SettingsMenu = ({
@@ -32,7 +34,9 @@ export const SettingsMenu = ({
     blurNsfw,
     setBlurNsfw,
     contentFilters,
-    setContentFilters
+    setContentFilters,
+    bookmarkCount,
+    onViewBookmarks
 }: Props) => {
     const [open, setOpen] = useState(false);
     return <>
@@ -45,6 +49,22 @@ export const SettingsMenu = ({
         <Drawer anchor="right" open={open} onClose={() => setOpen(false)}>
             <Box sx={{width: 300, p: 2, maxHeight: '100vh', overflowY: 'auto'}}>
                 <Typography variant="h6" gutterBottom>Settings</Typography>
+                <Button
+                    variant="outlined"
+                    fullWidth
+                    startIcon={
+                        <Badge badgeContent={bookmarkCount} color="primary">
+                            <Bookmark/>
+                        </Badge>
+                    }
+                    onClick={() => {
+                        onViewBookmarks();
+                        setOpen(false);
+                    }}
+                    sx={{mb: 2}}
+                >
+                    View Bookmarks
+                </Button>
                 <Divider sx={{my: 1}}/>
                 <Typography variant="subtitle1" sx={{mb: 1}}>Theme</Typography>
                 <ThemeSelector currentThemeId={themeId} onThemeChange={setThemeId}/>

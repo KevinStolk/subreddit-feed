@@ -13,9 +13,9 @@ import {
     Chip, CircularProgress,
     Snackbar
 } from "@mui/material";
-import {NavigateBefore, NavigateNext, Web, ThumbUpAlt, Share, ContentCopy} from "@mui/icons-material";
+import {NavigateBefore, NavigateNext, Web, ThumbUpAlt, Share, ContentCopy, Bookmark, BookmarkBorder} from "@mui/icons-material";
 import {IItemsProps} from "../../App";
-import React, {useEffect, useState, useMemo, useCallback, memo} from "react";
+import React, {useState, useMemo, useCallback, memo} from "react";
 import {Comments} from "../molecules/Comments";
 import {useComments} from "../../hooks/useComments";
 import {HLSVideoPlayer} from "../atoms/HLSVideoPlayer";
@@ -34,9 +34,11 @@ interface MediaItem {
 interface ItemProps {
     data: IItemsProps["data"];
     blurNsfw?: boolean;
+    isBookmarked?: boolean;
+    onToggleBookmark?: () => void;
 }
 
-export const Item = memo(({data, blurNsfw = false}: ItemProps) => {
+export const Item = memo(({data, blurNsfw = false, isBookmarked = false, onToggleBookmark}: ItemProps) => {
     const [lightboxOpen, setLightboxOpen] = useState<boolean>(false);
     const [currentMediaIndex, setCurrentMediaIndex] = useState<number>(0);
     const [snackbarOpen, setSnackbarOpen] = useState<boolean>(false);
@@ -71,6 +73,14 @@ export const Item = memo(({data, blurNsfw = false}: ItemProps) => {
             setSnackbarMessage("Link copied to clipboard!");
             setSnackbarOpen(true);
         });
+    };
+
+    const handleBookmark = () => {
+        if (onToggleBookmark) {
+            onToggleBookmark();
+            setSnackbarMessage(isBookmarked ? "Bookmark removed" : "Post bookmarked");
+            setSnackbarOpen(true);
+        }
     };
 
     const videoLink = data.secure_media_embed?.media_domain_url;
@@ -605,6 +615,13 @@ export const Item = memo(({data, blurNsfw = false}: ItemProps) => {
                     <Typography variant="caption"
                                 color="text.secondary">{currentMediaIndex + 1} of {mediaItems.length}</Typography>
                     <Box sx={{flexGrow: 1}}/>
+                    {onToggleBookmark && (
+                        <Tooltip title={isBookmarked ? "Remove bookmark" : "Add bookmark"} placement="top">
+                            <IconButton color="primary" onClick={handleBookmark}>
+                                {isBookmarked ? <Bookmark/> : <BookmarkBorder/>}
+                            </IconButton>
+                        </Tooltip>
+                    )}
                     <Tooltip title="Share" placement="top">
                         <IconButton color="primary" onClick={handleShare}>
                             <Share/>
