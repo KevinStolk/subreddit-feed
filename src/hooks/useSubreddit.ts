@@ -1,4 +1,4 @@
-import {useState, useEffect} from "react";
+import {useState, useEffect, useMemo} from "react";
 import axios from "axios";
 
 export interface IPostData {
@@ -41,6 +41,7 @@ export interface IPostData {
 
 export interface IUseSubreddit {
     posts: IPostData[];
+    filteredPosts: IPostData[];
     loading: boolean;
     error: string;
     sort: string;
@@ -54,6 +55,11 @@ export interface IUseSubreddit {
     fetchSubreddit: () => void;
     fetchSubredditFromSuggestion: (sub: string) => void;
     suggestions: string[];
+    searchQuery: string;
+    setSearchQuery: (value: string) => void;
+    searchWithinSubreddit: () => void;
+    clearSearch: () => void;
+    isSearching: boolean;
 }
 
 export const useSubreddit = (initialSubreddit = "", initialSort = "new"): IUseSubreddit => {
@@ -69,9 +75,23 @@ export const useSubreddit = (initialSubreddit = "", initialSort = "new"): IUseSu
     });
 
     const [suggestions, setSuggestions] = useState<string[]>([]);
+    const [searchQuery, setSearchQuery] = useState("");
+    const [isSearching, setIsSearching] = useState(false);
 
     const saveHistory = localStorage.getItem("saveHistory") === "true";
     const rememberLast = localStorage.getItem("rememberLastSubreddit") === "true";
+
+    const filteredPosts = useMemo(() => {
+        if (!isSearching || !searchQuery.trim()) {
+            return posts;
+        }
+        const query = searchQuery.toLowerCase();
+        return posts.filter(post =>
+            post.title.toLowerCase().includes(query) ||
+            post.selftext?.toLowerCase().includes(query) ||
+            post.author?.toLowerCase().includes(query)
+        );
+    }, [posts, searchQuery, isSearching]);
 
     const fetchSuggestions = async (sub: string) => {
         try {
@@ -79,14 +99,14 @@ export const useSubreddit = (initialSubreddit = "", initialSort = "new"): IUseSu
                 `${process.env.REACT_APP_BASE_URL}redditSearch?query=${sub}&exact=false`
             );
 
-
             const names = res.data.names || [];
-            setSuggestions(names.slice(0, 5)); // limit suggestions
+            setSuggestions(names.slice(0, 5));
         } catch {
             setSuggestions([]);
         }
     };
-    const fetchPosts = async (sub: string, append = false) => {
+
+    const fetchPosts = async (sub: string, sortBy: string, afterToken: string | null, append = false) => {
         const trimmed = sub.trim();
         if (!trimmed) {
             setError("Subreddit cannot be empty");
@@ -100,7 +120,7 @@ export const useSubreddit = (initialSubreddit = "", initialSort = "new"): IUseSu
         setSuggestions([]);
 
         try {
-            const url = `${process.env.REACT_APP_BASE_URL}redditPosts?sub=${trimmed}&sort=${sort}.json?limit=25${after ? `&after=${after}` : ""}`;
+            const url = `${process.env.REACT_APP_BASE_URL}redditPosts?sub=${trimmed}&sort=${sortBy}.json?limit=25${append && afterToken ? `&after=${afterToken}` : ""}`;
             const res = await axios.get(url);
             const newPosts = res.data.data.children.map((c: any) => c.data);
             const nextAfter = res.data.data.after;
@@ -120,31 +140,42 @@ export const useSubreddit = (initialSubreddit = "", initialSort = "new"): IUseSu
             }
         } catch (err) {
             console.error(err);
-
             await fetchSuggestions(trimmed);
-
             setError("Failed to load subreddit, does this even exist?");
             setPosts([]);
             setLoading(false);
-
         }
     };
 
     const fetchSubreddit = () => {
-        fetchPosts(subreddit, false);
-        setAfter(null); // reset pagination on new search
+        setSearchQuery("");
+        setIsSearching(false);
+        setAfter(null);
+        fetchPosts(subreddit, sort, null, false);
     };
 
     const fetchSubredditFromSuggestion = (sub: string) => {
         setSubreddit(sub);
+        setSearchQuery("");
+        setIsSearching(false);
         setAfter(null);
-        fetchPosts(sub, false);
+        fetchPosts(sub, sort, null, false);
     };
 
     const fetchNextPage = () => {
         if (!loading && after) {
-            fetchPosts(subreddit, true);
+            fetchPosts(subreddit, sort, after, true);
         }
+    };
+
+    const searchWithinSubreddit = () => {
+        if (!searchQuery.trim()) return;
+        setIsSearching(true);
+    };
+
+    const clearSearch = () => {
+        setSearchQuery("");
+        setIsSearching(false);
     };
 
     const clearHistory = () => {
@@ -170,6 +201,7 @@ export const useSubreddit = (initialSubreddit = "", initialSort = "new"): IUseSu
 
     return {
         posts,
+        filteredPosts,
         loading,
         error,
         sort,
@@ -183,5 +215,10 @@ export const useSubreddit = (initialSubreddit = "", initialSort = "new"): IUseSu
         fetchSubreddit,
         fetchSubredditFromSuggestion,
         suggestions,
+        searchQuery,
+        setSearchQuery,
+        searchWithinSubreddit,
+        clearSearch,
+        isSearching,
     };
 };

@@ -1,4 +1,4 @@
-import {ArrowDownward, ArrowUpward, ArrowBack} from "@mui/icons-material";
+import {ArrowDownward, ArrowUpward, ArrowBack, Search, Clear} from "@mui/icons-material";
 import {
     CircularProgress,
     SpeedDial,
@@ -87,6 +87,7 @@ export interface IItemsProps {
 function App() {
     const {
         posts,
+        filteredPosts: searchFilteredPosts,
         loading,
         error,
         sort,
@@ -99,7 +100,12 @@ function App() {
         clearHistoryItem,
         fetchSubreddit,
         fetchSubredditFromSuggestion,
-        suggestions
+        suggestions,
+        searchQuery,
+        setSearchQuery,
+        searchWithinSubreddit,
+        clearSearch,
+        isSearching
     } = useSubreddit();
     const {
         currentTheme,
@@ -141,7 +147,7 @@ function App() {
         });
     }, [contentFilters, getPostMediaType]);
 
-    const filteredPosts = useMemo(() => filterPosts(posts), [posts, filterPosts]);
+    const filteredPosts = useMemo(() => filterPosts(searchFilteredPosts), [searchFilteredPosts, filterPosts]);
 
     const theme = useMemo(() => createTheme({
         palette: {
@@ -286,6 +292,67 @@ function App() {
                                 </FormControl>
                             </form>
 
+                            {posts.length > 0 && (
+                                <Box
+                                    sx={{
+                                        display: "flex",
+                                        gap: "1rem",
+                                        margin: "1rem auto 0",
+                                        justifyContent: "center",
+                                        alignItems: "center",
+                                        flexWrap: "wrap"
+                                    }}
+                                >
+                                    <TextField
+                                        variant="outlined"
+                                        size="small"
+                                        value={searchQuery}
+                                        onChange={(e) => setSearchQuery(e.target.value)}
+                                        label="Filter posts"
+                                        placeholder="Filter by title, content, author..."
+                                        onKeyDown={(e) => {
+                                            if (e.key === "Enter") {
+                                                e.preventDefault();
+                                                searchWithinSubreddit();
+                                            }
+                                        }}
+                                        sx={{
+                                            width: {xs: "100%", sm: "280px"}
+                                        }}
+                                        InputProps={{
+                                            startAdornment: (
+                                                <InputAdornment position="start">
+                                                    <Search fontSize="small"/>
+                                                </InputAdornment>
+                                            )
+                                        }}
+                                    />
+                                    <Button
+                                        variant="contained"
+                                        size="small"
+                                        onClick={searchWithinSubreddit}
+                                        disabled={!searchQuery.trim()}
+                                        startIcon={<Search/>}
+                                    >
+                                        Filter
+                                    </Button>
+                                    {isSearching && (
+                                        <Button
+                                            variant="outlined"
+                                            size="small"
+                                            onClick={clearSearch}
+                                            startIcon={<Clear/>}
+                                        >
+                                            Clear
+                                        </Button>
+                                    )}
+                                    {isSearching && (
+                                        <Typography variant="body2" color="text.secondary">
+                                            Showing {filteredPosts.length} of {posts.length} posts
+                                        </Typography>
+                                    )}
+                                </Box>
+                            )}
 
                             {suggestions.length > 0 && (
                                 <SuggestionsList suggestions={suggestions} setSubreddit={setSubreddit}
