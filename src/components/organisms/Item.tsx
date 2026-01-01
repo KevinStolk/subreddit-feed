@@ -13,7 +13,7 @@ import {
     Chip, CircularProgress,
     Snackbar
 } from "@mui/material";
-import {NavigateBefore, NavigateNext, Web, ThumbUpAlt, Share, ContentCopy, Bookmark, BookmarkBorder} from "@mui/icons-material";
+import {NavigateBefore, NavigateNext, Web, ThumbUpAlt, ContentCopy, Bookmark, BookmarkBorder} from "@mui/icons-material";
 import {IItemsProps} from "../../App";
 import React, {useState, useMemo, useCallback, memo} from "react";
 import {Comments} from "../molecules/Comments";
@@ -50,24 +50,6 @@ export const Item = memo(({data, blurNsfw = false, isBookmarked = false, onToggl
     const shouldBlur = blurNsfw && isNsfw && !nsfwRevealed;
 
     const postUrl = `https://reddit.com${data.permalink}`;
-
-    const handleShare = async () => {
-        if (navigator.share) {
-            try {
-                await navigator.share({
-                    title: data.title,
-                    text: `Check out this post from r/${data.subreddit}`,
-                    url: postUrl,
-                });
-            } catch (err) {
-                if ((err as Error).name !== 'AbortError') {
-                    handleCopyLink();
-                }
-            }
-        } else {
-            handleCopyLink();
-        }
-    };
 
     const handleCopyLink = () => {
         navigator.clipboard.writeText(postUrl).then(() => {
@@ -685,11 +667,6 @@ export const Item = memo(({data, blurNsfw = false, isBookmarked = false, onToggl
                             </IconButton>
                         </Tooltip>
                     )}
-                    <Tooltip title="Share" placement="top">
-                        <IconButton color="primary" onClick={handleShare}>
-                            <Share/>
-                        </IconButton>
-                    </Tooltip>
                     <Tooltip title="Copy link" placement="top">
                         <IconButton color="primary" onClick={handleCopyLink}>
                             <ContentCopy/>
