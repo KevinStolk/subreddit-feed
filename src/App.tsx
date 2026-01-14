@@ -23,6 +23,7 @@ import CssBaseline from "@mui/material/CssBaseline";
 import {PostSkeleton} from "./components/molecules/PostSkeleton";
 import {StatusMessage} from "./components/molecules/StatusMessage";
 import {SettingsMenu} from "./components/organisms/SettingsMenu";
+import {LoginButton} from "./components/molecules/LoginButton";
 import {useSubreddit, IPostData} from "./hooks/useSubreddit";
 import {useSettings} from "./hooks/useSettings";
 import {useBookmarks} from "./hooks/useBookmarks";
@@ -86,6 +87,21 @@ export interface IItemsProps {
 
 function App() {
     const {
+        currentTheme,
+        themeId,
+        setThemeId,
+        rememberLast,
+        setRememberLast,
+        saveHistory,
+        setSaveHistory,
+        blurNsfw,
+        setBlurNsfw,
+        contentFilters,
+        setContentFilters,
+        lastSubreddit,
+        setLastSubreddit
+    } = useSettings();
+    const {
         posts,
         filteredPosts: searchFilteredPosts,
         loading,
@@ -106,20 +122,12 @@ function App() {
         searchWithinSubreddit,
         clearSearch,
         isSearching
-    } = useSubreddit();
-    const {
-        currentTheme,
-        themeId,
-        setThemeId,
-        rememberLast,
-        setRememberLast,
+    } = useSubreddit("", "new", {
         saveHistory,
-        setSaveHistory,
-        blurNsfw,
-        setBlurNsfw,
-        contentFilters,
-        setContentFilters
-    } = useSettings();
+        rememberLast,
+        lastSubreddit,
+        setLastSubreddit
+    });
     const {bookmarks, isBookmarked, toggleBookmark} = useBookmarks();
     const [showingBookmarks, setShowingBookmarks] = useState(false);
     const inputRef = useRef<HTMLInputElement>(null);
@@ -183,7 +191,8 @@ function App() {
         <ThemeProvider theme={theme}>
             <CssBaseline/>
             <div className="App">
-                <div style={{display: "flex", justifyContent: "end", padding: "1rem"}}>
+                <div style={{display: "flex", justifyContent: "end", padding: "1rem", gap: "1rem", alignItems: "center"}}>
+                    <LoginButton />
                     <SettingsMenu
                         themeId={themeId}
                         setThemeId={setThemeId}

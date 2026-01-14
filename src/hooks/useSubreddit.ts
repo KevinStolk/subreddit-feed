@@ -1,5 +1,6 @@
-import {useState, useEffect, useMemo} from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import axios from "axios";
+import { useAuth } from "../context/AuthContext";
 
 export interface IPostData {
     ups: string;
@@ -62,14 +63,39 @@ export interface IUseSubreddit {
     isSearching: boolean;
 }
 
-export const useSubreddit = (initialSubreddit = "", initialSort = "new"): IUseSubreddit => {
+interface UseSubredditOptions {
+    saveHistory: boolean;
+    rememberLast: boolean;
+    lastSubreddit: string | null;
+    setLastSubreddit: (subreddit: string | null) => void;
+}
+
+export const useSubreddit = (
+    initialSubreddit = "",
+    initialSort = "new",
+    options: UseSubredditOptions
+): IUseSubreddit => {
+    const { saveHistory, rememberLast, lastSubreddit, setLastSubreddit } = options;
+
+    const {
+        isAuthenticated,
+        isLoading: authLoading,
+        settings: serverSettings,
+        searchHistory: serverHistory,
+        addToHistory,
+        removeFromHistory,
+        clearHistory: clearServerHistory,
+    } = useAuth();
+
     const [posts, setPosts] = useState<IPostData[]>([]);
     const [subreddit, setSubreddit] = useState(initialSubreddit);
     const [sort, setSort] = useState(initialSort);
     const [after, setAfter] = useState<string | null>(null);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState("");
-    const [searchHistory, setSearchHistory] = useState<string[]>(() => {
+
+    // Local search history for unauthenticated users only
+    const [localSearchHistory, setLocalSearchHistory] = useState<string[]>(() => {
         const stored = localStorage.getItem("searchHistory");
         return stored ? JSON.parse(stored) : [];
     });
@@ -78,18 +104,24 @@ export const useSubreddit = (initialSubreddit = "", initialSort = "new"): IUseSu
     const [searchQuery, setSearchQuery] = useState("");
     const [isSearching, setIsSearching] = useState(false);
 
-    const saveHistory = localStorage.getItem("saveHistory") === "true";
-    const rememberLast = localStorage.getItem("rememberLastSubreddit") === "true";
+    // Use server history when authenticated, otherwise local
+    const searchHistory = useMemo(() => {
+        if (!authLoading && isAuthenticated) {
+            return serverHistory.map((h) => h.subreddit);
+        }
+        return localSearchHistory;
+    }, [authLoading, isAuthenticated, serverHistory, localSearchHistory]);
 
     const filteredPosts = useMemo(() => {
         if (!isSearching || !searchQuery.trim()) {
             return posts;
         }
         const query = searchQuery.toLowerCase();
-        return posts.filter(post =>
-            post.title.toLowerCase().includes(query) ||
-            post.selftext?.toLowerCase().includes(query) ||
-            post.author?.toLowerCase().includes(query)
+        return posts.filter(
+            (post) =>
+                post.title.toLowerCase().includes(query) ||
+                post.selftext?.toLowerCase().includes(query) ||
+                post.author?.toLowerCase().includes(query)
         );
     }, [posts, searchQuery, isSearching]);
 
@@ -106,67 +138,99 @@ export const useSubreddit = (initialSubreddit = "", initialSort = "new"): IUseSu
         }
     };
 
-    const fetchPosts = async (sub: string, sortBy: string, afterToken: string | null, append = false) => {
-        const trimmed = sub.trim();
-        if (!trimmed) {
-            setError("Subreddit cannot be empty");
-            setPosts([]);
-            setLoading(false);
-            return;
-        }
+    const saveToHistory = useCallback(
+        async (trimmed: string) => {
+            // Get saveHistory from server settings when authenticated
+            const shouldSave = isAuthenticated && serverSettings
+                ? serverSettings.saveHistory
+                : saveHistory;
 
-        setLoading(true);
-        setError("");
-        setSuggestions([]);
+            if (!shouldSave) return;
 
-        try {
-            const url = `${process.env.REACT_APP_BASE_URL}redditPosts?sub=${trimmed}&sort=${sortBy}.json?limit=25${append && afterToken ? `&after=${afterToken}` : ""}`;
-            const res = await axios.get(url);
-            const newPosts = res.data.data.children.map((c: any) => c.data);
-            const nextAfter = res.data.data.after;
-
-            setPosts(prev => (append ? [...prev, ...newPosts] : newPosts));
-            setAfter(nextAfter);
-            setLoading(false);
-
-            if (rememberLast) localStorage.setItem("lastSubreddit", trimmed);
-
-            if (saveHistory) {
-                setSearchHistory(prev => {
-                    const updated = [trimmed, ...prev.filter(s => s !== trimmed)].slice(0, 10);
+            if (isAuthenticated) {
+                // Save to server
+                await addToHistory(trimmed);
+            } else {
+                // Save locally
+                setLocalSearchHistory((prev) => {
+                    const updated = [trimmed, ...prev.filter((s) => s !== trimmed)].slice(0, 10);
                     localStorage.setItem("searchHistory", JSON.stringify(updated));
                     return updated;
                 });
             }
-        } catch (err) {
-            console.error(err);
-            await fetchSuggestions(trimmed);
-            setError("Failed to load subreddit, does this even exist?");
-            setPosts([]);
-            setLoading(false);
-        }
-    };
+        },
+        [isAuthenticated, serverSettings, saveHistory, addToHistory]
+    );
 
-    const fetchSubreddit = () => {
+    const fetchPosts = useCallback(
+        async (sub: string, sortBy: string, afterToken: string | null, append = false) => {
+            const trimmed = sub.trim();
+            if (!trimmed) {
+                setError("Subreddit cannot be empty");
+                setPosts([]);
+                setLoading(false);
+                return;
+            }
+
+            setLoading(true);
+            setError("");
+            setSuggestions([]);
+
+            try {
+                const url = `${process.env.REACT_APP_BASE_URL}redditPosts?sub=${trimmed}&sort=${sortBy}.json?limit=25${append && afterToken ? `&after=${afterToken}` : ""}`;
+                const res = await axios.get(url);
+                const newPosts = res.data.data.children.map((c: any) => c.data);
+                const nextAfter = res.data.data.after;
+
+                setPosts((prev) => (append ? [...prev, ...newPosts] : newPosts));
+                setAfter(nextAfter);
+                setLoading(false);
+
+                // Get rememberLast from server settings when authenticated
+                const shouldRemember = isAuthenticated && serverSettings
+                    ? serverSettings.rememberSub
+                    : rememberLast;
+
+                if (shouldRemember) {
+                    setLastSubreddit(trimmed);
+                }
+
+                // Save to history
+                saveToHistory(trimmed);
+            } catch (err) {
+                console.error(err);
+                await fetchSuggestions(trimmed);
+                setError("Failed to load subreddit, does this even exist?");
+                setPosts([]);
+                setLoading(false);
+            }
+        },
+        [isAuthenticated, serverSettings, rememberLast, setLastSubreddit, saveToHistory]
+    );
+
+    const fetchSubreddit = useCallback(() => {
         setSearchQuery("");
         setIsSearching(false);
         setAfter(null);
         fetchPosts(subreddit, sort, null, false);
-    };
+    }, [subreddit, sort, fetchPosts]);
 
-    const fetchSubredditFromSuggestion = (sub: string) => {
-        setSubreddit(sub);
-        setSearchQuery("");
-        setIsSearching(false);
-        setAfter(null);
-        fetchPosts(sub, sort, null, false);
-    };
+    const fetchSubredditFromSuggestion = useCallback(
+        (sub: string) => {
+            setSubreddit(sub);
+            setSearchQuery("");
+            setIsSearching(false);
+            setAfter(null);
+            fetchPosts(sub, sort, null, false);
+        },
+        [sort, fetchPosts]
+    );
 
-    const fetchNextPage = () => {
+    const fetchNextPage = useCallback(() => {
         if (!loading && after) {
             fetchPosts(subreddit, sort, after, true);
         }
-    };
+    }, [loading, after, subreddit, sort, fetchPosts]);
 
     const searchWithinSubreddit = () => {
         if (!searchQuery.trim()) return;
@@ -178,26 +242,53 @@ export const useSubreddit = (initialSubreddit = "", initialSort = "new"): IUseSu
         setIsSearching(false);
     };
 
-    const clearHistory = () => {
-        setSearchHistory([]);
-        localStorage.removeItem("searchHistory");
-    };
+    const clearHistory = useCallback(async () => {
+        if (isAuthenticated) {
+            await clearServerHistory();
+        } else {
+            setLocalSearchHistory([]);
+            localStorage.removeItem("searchHistory");
+        }
+    }, [isAuthenticated, clearServerHistory]);
 
-    const clearHistoryItem = (sub: string) => {
-        setSearchHistory(prev => {
-            const newHistory = prev.filter(s => s !== sub);
-            localStorage.setItem("searchHistory", JSON.stringify(newHistory));
-            return newHistory;
-        });
-    };
+    const clearHistoryItem = useCallback(
+        async (sub: string) => {
+            if (isAuthenticated) {
+                // Find the item by subreddit name and remove it
+                const item = serverHistory.find((h) => h.subreddit === sub);
+                if (item) {
+                    await removeFromHistory(item.id);
+                }
+            } else {
+                setLocalSearchHistory((prev) => {
+                    const newHistory = prev.filter((s) => s !== sub);
+                    localStorage.setItem("searchHistory", JSON.stringify(newHistory));
+                    return newHistory;
+                });
+            }
+        },
+        [isAuthenticated, serverHistory, removeFromHistory]
+    );
 
-    // On mount: load last subreddit if remembered
+    // On mount or when auth loads: set subreddit from lastSubreddit if remembered
     useEffect(() => {
-        const lastSub = localStorage.getItem("lastSubreddit");
-        if (rememberLast && lastSub) {
+        if (authLoading) return;
+
+        // Get rememberLast from server settings when authenticated
+        const shouldRemember = isAuthenticated && serverSettings
+            ? serverSettings.rememberSub
+            : rememberLast;
+
+        // Get lastSub from server settings when authenticated
+        const lastSub = isAuthenticated && serverSettings
+            ? serverSettings.lastSubreddit
+            : lastSubreddit;
+
+        if (shouldRemember && lastSub && !subreddit) {
             setSubreddit(lastSub);
         }
-    }, []);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [authLoading, isAuthenticated, serverSettings]);
 
     return {
         posts,
