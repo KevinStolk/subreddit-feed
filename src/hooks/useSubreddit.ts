@@ -177,7 +177,7 @@ export const useSubreddit = (
             setSuggestions([]);
 
             try {
-                const url = `${process.env.REACT_APP_BASE_URL}redditPosts?sub=${trimmed}&sort=${sortBy}.json?limit=25${append && afterToken ? `&after=${afterToken}` : ""}`;
+                const url = `${process.env.REACT_APP_BASE_URL}redditPosts?sub=${trimmed}&sort=${sortBy}${append && afterToken ? `&after=${afterToken}` : ""}`;
                 const res = await axios.get(url);
                 const newPosts = res.data.data.children.map((c: any) => c.data);
                 const nextAfter = res.data.data.after;

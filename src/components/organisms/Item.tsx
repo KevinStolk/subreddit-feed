@@ -596,7 +596,7 @@ export const Item = memo(({data, blurNsfw = false, isBookmarked = false, onToggl
                         )}
                         {comments.length > 0 ?
                             <Box sx={{pt: 2}}>
-                                <Box sx={{display: "flex", gap: 2, mb: 1}}>
+                                {/* <Box sx={{display: "flex", gap: 2, mb: 1}}>
                                     <Chip
                                         sx={{
                                             fontWeight: 600,
@@ -632,7 +632,7 @@ export const Item = memo(({data, blurNsfw = false, isBookmarked = false, onToggl
                                         onClick={() => setSort("new")}
                                         label={"New"}
                                     ></Chip>
-                                </Box>
+                                </Box> */}
 
                                 <Box sx={{
                                     pt: 1
