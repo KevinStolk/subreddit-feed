@@ -46,7 +46,7 @@ export const SettingsMenu = ({
         <IconButton color="primary" sx={{display: {xs: 'initial', md: 'none'}, padding: '0'}} aria-label="settings"  onClick={() => setOpen(true)}>
             <Settings/>
         </IconButton>
-        <Drawer anchor="right" open={open} onClose={() => setOpen(false)}>
+        <Drawer anchor="right" open={open} onClose={() => setOpen(false)} disableScrollLock>
             <Box sx={{width: 300, p: 2, maxHeight: '100vh', overflowY: 'auto'}}>
                 <Typography variant="h6" gutterBottom>Settings</Typography>
                 <Button

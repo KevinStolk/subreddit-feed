@@ -10,7 +10,7 @@ import {
     CardMedia,
     IconButton,
     Tooltip, Box,
-    Chip, CircularProgress,
+    CircularProgress,
     Snackbar
 } from "@mui/material";
 import {NavigateBefore, NavigateNext, Web, ThumbUpAlt, ContentCopy, Bookmark, BookmarkBorder} from "@mui/icons-material";
@@ -69,7 +69,7 @@ export const Item = memo(({data, blurNsfw = false, isBookmarked = false, onToggl
     const videoLink = data.secure_media_embed?.media_domain_url;
     const image_src = data.url_overridden_by_dest;
     const fallback_url = data.url;
-    const {comments, loading, sort, setSort, loadMore} = useComments(data.subreddit, data.id, lightboxOpen);
+    const {comments, loading, loadMore} = useComments(data.subreddit, data.id, lightboxOpen);
 
     const getActualGifUrl = useCallback((url: string): string | null => {
         if (!url) return null;
@@ -423,71 +423,64 @@ export const Item = memo(({data, blurNsfw = false, isBookmarked = false, onToggl
                         </Typography>
 
                         {mediaItems.length === 0 ? (
-                            <div style={{
-                                backgroundColor: "primary.main",
-                                height: 200,
-                                borderRadius: 2,
-                                display: "flex",
-                                alignItems: "center",
-                                justifyContent: "center"
-                            }}>
-                                <Typography variant="body2" color="text.secondary">No media available</Typography>
-                            </div>
+                            data.selftext ? (
+                                <Typography
+                                    variant="body2"
+                                    color="text.secondary"
+                                    sx={{
+                                        display: "-webkit-box",
+                                        WebkitLineClamp: 6,
+                                        WebkitBoxOrient: "vertical",
+                                        overflow: "hidden",
+                                        whiteSpace: "pre-wrap",
+                                    }}
+                                >
+                                    {data.selftext}
+                                </Typography>
+                            ) : null
                         ) : isGallery ? (
-                            <div style={{
-                                display: "flex",
-                                flexWrap: "wrap",
-                                gap: 2,
-                                position: "relative",
-                                borderRadius: 2,
-                                overflow: "hidden",
-                                height: "100%",
-                                paddingBottom: "2rem"
-                            }}>
-                                {mediaItems.slice(0, 1).map((item, index) => (
-                                    <div key={item.id} style={{height: "100%", width: "100%"}} onClick={(e) => {
-                                        e.preventDefault();
-                                        e.stopPropagation();
-                                        openLightbox(index);
-                                    }}>
-                                        {renderMedia(item, {width: "100%", height: "100%"}, true)}
-                                        <span>
-                                            {data?.num_comments} comment{data?.num_comments !== "1" ? "s" : ""}
-                                        </span>
+                            <>
+                                <div style={{position: "relative"}}>
+                                    <div
+                                        className="card-media"
+                                        onClick={(e) => {
+                                            e.preventDefault();
+                                            e.stopPropagation();
+                                            openLightbox(0);
+                                        }}
+                                    >
+                                        {renderMedia(mediaItems[0], {width: "100%", height: "100%"}, true)}
                                     </div>
-                                ))}
-                                {mediaItems.length > 0 && <Box sx={{
-                                    position: "absolute",
-                                    bottom: 8,
-                                    right: 8,
-                                    backgroundColor: "primary.main",
-                                    color: "white",
-                                    padding: "4px 8px",
-                                    fontSize: "0.75rem",
-                                    fontWeight: "600",
-                                }}>+{mediaItems.length} in total</Box>}
-                            </div>
+                                    <Box sx={{
+                                        position: "absolute",
+                                        bottom: 8,
+                                        right: 8,
+                                        backgroundColor: "primary.main",
+                                        color: "white",
+                                        padding: "4px 8px",
+                                        fontSize: "0.75rem",
+                                        fontWeight: "600",
+                                    }}>+{mediaItems.length} in total</Box>
+                                </div>
+                                <Box sx={{
+                                    mt: 0.5,
+                                    '& span': {color: 'inherit', textDecoration: 'none'},
+                                    '& span:hover': {color: "primary.main", textDecoration: 'underline', transition: "color 0.2s ease"}
+                                }}>
+                                    <span>{data?.num_comments} comment{data?.num_comments !== "1" ? "s" : ""}</span>
+                                </Box>
+                            </>
                         ) : (
                             <>
-                                {renderMedia(mediaItems[0], {
-                                    width: "100%",
-                                    height: "100%",
-                                    cursor: mediaItems.length > 0 ? "pointer" : "default"
-                                }, true)}
+                                <div className="card-media" style={{cursor: "pointer"}}>
+                                    {renderMedia(mediaItems[0], {width: "100%", height: "100%"}, true)}
+                                </div>
                                 <Box sx={{
-                                    '& span': {
-                                        color: 'inherit',
-                                        textDecoration: 'none'
-                                    },
-                                    '& span:hover': {
-                                        color: "primary.main",
-                                        textDecoration: 'underline',
-                                        transition: "color 0.2s ease"
-                                    }
+                                    mt: 0.5,
+                                    '& span': {color: 'inherit', textDecoration: 'none'},
+                                    '& span:hover': {color: "primary.main", textDecoration: 'underline', transition: "color 0.2s ease"}
                                 }}>
-                                        <span>
-                                            {data?.num_comments} comment{data?.num_comments !== "1" ? "s" : ""}
-                                        </span>
+                                    <span>{data?.num_comments} comment{data?.num_comments !== "1" ? "s" : ""}</span>
                                 </Box>
                             </>
                         )}
