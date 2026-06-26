@@ -13,12 +13,13 @@ import {
     CircularProgress,
     Snackbar
 } from "@mui/material";
-import {NavigateBefore, NavigateNext, Web, ThumbUpAlt, ContentCopy, Bookmark, BookmarkBorder} from "@mui/icons-material";
+import {NavigateBefore, NavigateNext, Web, ThumbUpAlt, ContentCopy, Bookmark, BookmarkBorder, Download} from "@mui/icons-material";
 import {IItemsProps} from "../../App";
 import React, {useState, useMemo, useCallback, memo} from "react";
 import {Comments} from "../molecules/Comments";
 import {useComments} from "../../hooks/useComments";
 import {HLSVideoPlayer} from "../atoms/HLSVideoPlayer";
+import {api} from "../../services/api";
 
 interface MediaItem {
     id: string;
@@ -45,6 +46,7 @@ export const Item = memo(({data, blurNsfw = false, isBookmarked = false, onToggl
     const [snackbarOpen, setSnackbarOpen] = useState<boolean>(false);
     const [snackbarMessage, setSnackbarMessage] = useState<string>("");
     const [nsfwRevealed, setNsfwRevealed] = useState<boolean>(false);
+    const [downloading, setDownloading] = useState<boolean>(false);
 
     const isNsfw = data.over_18 === true;
     const shouldBlur = blurNsfw && isNsfw && !nsfwRevealed;
@@ -63,6 +65,91 @@ export const Item = memo(({data, blurNsfw = false, isBookmarked = false, onToggl
             onToggleBookmark();
             setSnackbarMessage(isBookmarked ? "Bookmark removed" : "Post bookmarked");
             setSnackbarOpen(true);
+        }
+    };
+
+    const slugify = (text: string): string =>
+        text.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 60) || "reddit-post";
+
+    const getDownloadInfo = (item: MediaItem): { url: string; filename: string } | null => {
+        if (item.type === "video") return null;
+
+        let url: string;
+        let ext: string;
+        if (item.type === "gif" || item.src.includes(".gif")) {
+            url = item.gifSrc || item.originalSrc || item.src;
+            ext = "gif";
+        } else {
+            url = item.originalSrc || item.src;
+            const match = url.split("?")[0].match(/\.(jpe?g|png|webp|gif)$/i);
+            ext = match ? match[1].toLowerCase() : "jpg";
+        }
+
+        if (!url) return null;
+        return {url, filename: `${slugify(item.caption)}.${ext}`};
+    };
+
+    const triggerBlobDownload = (blob: Blob, filename: string) => {
+        const objectUrl = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.href = objectUrl;
+        link.download = filename;
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        URL.revokeObjectURL(objectUrl);
+    };
+
+    const handleDownload = async () => {
+        const item = mediaItems[currentMediaIndex];
+
+        if (item.type === "video" && item.src.includes("v.redd.it")) {
+            setDownloading(true);
+            try {
+                const response = await api.get("download", {
+                    params: {url: item.src, title: item.caption},
+                    responseType: "blob",
+                });
+                triggerBlobDownload(response.data, `${slugify(item.caption)}.mp4`);
+                setSnackbarMessage("Download started");
+                setSnackbarOpen(true);
+            } catch {
+                setSnackbarMessage("Couldn't download video. Opening in new tab...");
+                setSnackbarOpen(true);
+                window.open(item.src, "_blank", "noopener,noreferrer");
+            } finally {
+                setDownloading(false);
+            }
+            return;
+        }
+
+        const info = getDownloadInfo(item);
+        if (!info) {
+            setSnackbarMessage("This media can't be downloaded directly. Opening source...");
+            setSnackbarOpen(true);
+            window.open(item.src, "_blank", "noopener,noreferrer");
+            return;
+        }
+
+        setDownloading(true);
+        try {
+            const response = await fetch(info.url);
+            if (!response.ok) {
+                // Cross-origin or network failure: fall back to opening the file.
+                setSnackbarMessage("Couldn't download directly. Opening in new tab...");
+                setSnackbarOpen(true);
+                window.open(info.url, "_blank", "noopener,noreferrer");
+                return;
+            }
+            triggerBlobDownload(await response.blob(), info.filename);
+            setSnackbarMessage("Download started");
+            setSnackbarOpen(true);
+        } catch {
+            setSnackbarMessage("Couldn't download directly. Opening in new tab...");
+            setSnackbarOpen(true);
+            window.open(info.url, "_blank", "noopener,noreferrer");
+        } finally {
+            setDownloading(false);
         }
     };
 
@@ -660,6 +747,13 @@ export const Item = memo(({data, blurNsfw = false, isBookmarked = false, onToggl
                             </IconButton>
                         </Tooltip>
                     )}
+                    <Tooltip title="Download" placement="top">
+                        <span>
+                            <IconButton color="primary" onClick={handleDownload} disabled={downloading}>
+                                {downloading ? <CircularProgress size={20}/> : <Download/>}
+                            </IconButton>
+                        </span>
+                    </Tooltip>
                     <Tooltip title="Copy link" placement="top">
                         <IconButton color="primary" onClick={handleCopyLink}>
                             <ContentCopy/>
