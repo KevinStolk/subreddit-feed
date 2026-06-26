@@ -130,6 +130,7 @@ function App() {
     });
     const {bookmarks, isBookmarked, toggleBookmark} = useBookmarks();
     const [showingBookmarks, setShowingBookmarks] = useState(false);
+    const [bookmarkSearch, setBookmarkSearch] = useState("");
     const inputRef = useRef<HTMLInputElement>(null);
     const scrollElement = document.scrollingElement || document.body;
 
@@ -156,6 +157,17 @@ function App() {
     }, [contentFilters, getPostMediaType]);
 
     const filteredPosts = useMemo(() => filterPosts(searchFilteredPosts), [searchFilteredPosts, filterPosts]);
+
+    const filteredBookmarks = useMemo(() => {
+        const query = bookmarkSearch.trim().toLowerCase();
+        if (!query) return bookmarks;
+        return bookmarks.filter(post =>
+            post.title?.toLowerCase().includes(query) ||
+            post.selftext?.toLowerCase().includes(query) ||
+            post.author?.toLowerCase().includes(query) ||
+            post.subreddit?.toLowerCase().includes(query)
+        );
+    }, [bookmarks, bookmarkSearch]);
 
     const theme = useMemo(() => createTheme({
         palette: {
@@ -214,7 +226,10 @@ function App() {
                             <Box display="flex" alignItems="center" gap={2} mb={2}>
                                 <Button
                                     startIcon={<ArrowBack/>}
-                                    onClick={() => setShowingBookmarks(false)}
+                                    onClick={() => {
+                                        setShowingBookmarks(false);
+                                        setBookmarkSearch("");
+                                    }}
                                     variant="outlined"
                                 >
                                     Back to Feed
@@ -226,17 +241,68 @@ function App() {
                             {bookmarks.length === 0 ? (
                                 <StatusMessage type="info" message="No bookmarks yet. Open a post and click the bookmark icon to save it."/>
                             ) : (
-                                <div className="grid">
-                                    {bookmarks.map(post => (
-                                        <Item
-                                            key={post.id}
-                                            data={post}
-                                            blurNsfw={blurNsfw}
-                                            isBookmarked={isBookmarked(post.id)}
-                                            onToggleBookmark={() => toggleBookmark(post)}
+                                <>
+                                    <Box
+                                        sx={{
+                                            display: "flex",
+                                            gap: "1rem",
+                                            margin: "0 auto 1rem",
+                                            justifyContent: "center",
+                                            alignItems: "center",
+                                            flexWrap: "wrap"
+                                        }}
+                                    >
+                                        <TextField
+                                            variant="outlined"
+                                            size="small"
+                                            value={bookmarkSearch}
+                                            onChange={(e) => setBookmarkSearch(e.target.value)}
+                                            label="Search bookmarks"
+                                            placeholder="Search by title, content, author, subreddit..."
+                                            sx={{
+                                                width: {xs: "100%", sm: "320px"}
+                                            }}
+                                            InputProps={{
+                                                startAdornment: (
+                                                    <InputAdornment position="start">
+                                                        <Search fontSize="small"/>
+                                                    </InputAdornment>
+                                                ),
+                                                endAdornment: bookmarkSearch ? (
+                                                    <InputAdornment position="end">
+                                                        <Button
+                                                            size="small"
+                                                            onClick={() => setBookmarkSearch("")}
+                                                            sx={{minWidth: "auto", p: 0.5}}
+                                                        >
+                                                            <Clear fontSize="small"/>
+                                                        </Button>
+                                                    </InputAdornment>
+                                                ) : undefined
+                                            }}
                                         />
-                                    ))}
-                                </div>
+                                        {bookmarkSearch.trim() && (
+                                            <Typography variant="body2" color="text.secondary">
+                                                Showing {filteredBookmarks.length} of {bookmarks.length} bookmarks
+                                            </Typography>
+                                        )}
+                                    </Box>
+                                    {filteredBookmarks.length === 0 ? (
+                                        <StatusMessage type="info" message="No bookmarks match your search."/>
+                                    ) : (
+                                        <div className="grid">
+                                            {filteredBookmarks.map(post => (
+                                                <Item
+                                                    key={post.id}
+                                                    data={post}
+                                                    blurNsfw={blurNsfw}
+                                                    isBookmarked={isBookmarked(post.id)}
+                                                    onToggleBookmark={() => toggleBookmark(post)}
+                                                />
+                                            ))}
+                                        </div>
+                                    )}
+                                </>
                             )}
                         </>
                     ) : (
