@@ -15,12 +15,14 @@ export interface ISettings {
     rememberLast: boolean;
     saveHistory: boolean;
     blurNsfw: boolean;
+    bookmarkRoulette: boolean;
     contentFilters: ContentFilters;
     lastSubreddit: string | null;
     setThemeId: (id: string) => void;
     setRememberLast: (value: boolean) => void;
     setSaveHistory: (value: boolean) => void;
     setBlurNsfw: (value: boolean) => void;
+    setBookmarkRoulette: (value: boolean) => void;
     setContentFilters: (filters: ContentFilters) => void;
     setLastSubreddit: (subreddit: string | null) => void;
 }
@@ -37,6 +39,7 @@ export const useSettings = (): ISettings => {
 
     // Local-only settings (not synced to server)
     const [blurNsfw, setBlurNsfwState] = useState(() => localStorage.getItem("blurNsfw") === "true");
+    const [bookmarkRoulette, setBookmarkRouletteState] = useState(() => localStorage.getItem("bookmarkRoulette") !== "false");
     const [contentFilters, setContentFiltersState] = useState<ContentFilters>(() => {
         const stored = localStorage.getItem("contentFilters");
         return stored ? JSON.parse(stored) : defaultContentFilters;
@@ -98,6 +101,11 @@ export const useSettings = (): ISettings => {
         localStorage.setItem("blurNsfw", String(value));
     }, []);
 
+    const handleBookmarkRoulette = useCallback((value: boolean) => {
+        setBookmarkRouletteState(value);
+        localStorage.setItem("bookmarkRoulette", String(value));
+    }, []);
+
     const handleContentFilters = useCallback((filters: ContentFilters) => {
         setContentFiltersState(filters);
         localStorage.setItem("contentFilters", JSON.stringify(filters));
@@ -122,12 +130,14 @@ export const useSettings = (): ISettings => {
         rememberLast,
         saveHistory,
         blurNsfw,
+        bookmarkRoulette,
         contentFilters,
         lastSubreddit,
         setThemeId,
         setRememberLast: handleRememberLast,
         setSaveHistory: handleSaveHistory,
         setBlurNsfw: handleBlurNsfw,
+        setBookmarkRoulette: handleBookmarkRoulette,
         setContentFilters: handleContentFilters,
         setLastSubreddit: handleLastSubreddit,
     };

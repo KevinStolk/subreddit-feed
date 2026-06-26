@@ -1,4 +1,4 @@
-import {ArrowDownward, ArrowUpward, ArrowBack, Search, Clear} from "@mui/icons-material";
+import {ArrowDownward, ArrowUpward, ArrowBack, Search, Clear, Casino} from "@mui/icons-material";
 import {
     CircularProgress,
     SpeedDial,
@@ -28,6 +28,7 @@ import {useSubreddit, IPostData} from "./hooks/useSubreddit";
 import {useSettings} from "./hooks/useSettings";
 import {useBookmarks} from "./hooks/useBookmarks";
 import {SuggestionsList} from "./components/molecules/SuggestionsList";
+import {BookmarkRoulette} from "./components/organisms/BookmarkRoulette";
 import {isDarkTheme} from "./themes";
 
 const Item = React.lazy(() => import('./components/organisms/Item').then(module => ({default: module.Item})));
@@ -96,6 +97,8 @@ function App() {
         setSaveHistory,
         blurNsfw,
         setBlurNsfw,
+        bookmarkRoulette,
+        setBookmarkRoulette,
         contentFilters,
         setContentFilters,
         lastSubreddit,
@@ -131,6 +134,8 @@ function App() {
     const {bookmarks, isBookmarked, toggleBookmark} = useBookmarks();
     const [showingBookmarks, setShowingBookmarks] = useState(false);
     const [bookmarkSearch, setBookmarkSearch] = useState("");
+    const [rouletteOpen, setRouletteOpen] = useState(false);
+    const [isolatedPost, setIsolatedPost] = useState<IPostData | null>(null);
     const inputRef = useRef<HTMLInputElement>(null);
     const scrollElement = document.scrollingElement || document.body;
 
@@ -214,6 +219,8 @@ function App() {
                         setSaveHistory={setSaveHistory}
                         blurNsfw={blurNsfw}
                         setBlurNsfw={setBlurNsfw}
+                        bookmarkRoulette={bookmarkRoulette}
+                        setBookmarkRoulette={setBookmarkRoulette}
                         contentFilters={contentFilters}
                         setContentFilters={setContentFilters}
                         bookmarkCount={bookmarks.length}
@@ -222,6 +229,30 @@ function App() {
                 </div>
                 <div className="container">
                     {showingBookmarks ? (
+                        isolatedPost ? (
+                            <>
+                                <Box display="flex" alignItems="center" gap={2} mb={2}>
+                                    <Button
+                                        startIcon={<ArrowBack/>}
+                                        onClick={() => setIsolatedPost(null)}
+                                        variant="outlined"
+                                    >
+                                        Back to Bookmarks
+                                    </Button>
+                                    <Typography variant="h5">Post</Typography>
+                                </Box>
+                                <div className="grid">
+                                    <Item
+                                        key={isolatedPost.id}
+                                        data={isolatedPost}
+                                        blurNsfw={blurNsfw}
+                                        isBookmarked={isBookmarked(isolatedPost.id)}
+                                        onToggleBookmark={() => toggleBookmark(isolatedPost)}
+                                        autoOpenLightbox
+                                    />
+                                </div>
+                            </>
+                        ) : (
                         <>
                             <Box display="flex" alignItems="center" gap={2} mb={2}>
                                 <Button
@@ -229,6 +260,7 @@ function App() {
                                     onClick={() => {
                                         setShowingBookmarks(false);
                                         setBookmarkSearch("");
+                                        setIsolatedPost(null);
                                     }}
                                     variant="outlined"
                                 >
@@ -281,6 +313,17 @@ function App() {
                                                 ) : undefined
                                             }}
                                         />
+                                        {bookmarkRoulette && (
+                                            <Button
+                                                variant="contained"
+                                                size="small"
+                                                startIcon={<Casino/>}
+                                                onClick={() => setRouletteOpen(true)}
+                                                disabled={filteredBookmarks.length === 0}
+                                            >
+                                                Roll
+                                            </Button>
+                                        )}
                                         {bookmarkSearch.trim() && (
                                             <Typography variant="body2" color="text.secondary">
                                                 Showing {filteredBookmarks.length} of {bookmarks.length} bookmarks
@@ -305,6 +348,7 @@ function App() {
                                 </>
                             )}
                         </>
+                        )
                     ) : (
                         <>
                             <form className="form" onSubmit={handleSubmit}
@@ -479,6 +523,16 @@ function App() {
                         </>
                     )}
                 </div>
+
+                <BookmarkRoulette
+                    open={rouletteOpen}
+                    onClose={() => setRouletteOpen(false)}
+                    bookmarks={filteredBookmarks}
+                    onSelect={(post) => {
+                        setIsolatedPost(post);
+                        setRouletteOpen(false);
+                    }}
+                />
 
                 <SpeedDial
                     ariaLabel="SpeedDial"

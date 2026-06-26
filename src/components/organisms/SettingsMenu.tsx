@@ -5,23 +5,26 @@ import {GridToggleButton} from "../molecules/GridToggleButton";
 import {RememberToggle} from "../molecules/RememberToggle";
 import {HistoryToggle} from "../molecules/HistoryToggle";
 import {BlurToggle} from "../molecules/BlurToggle";
+import {BookmarkRouletteToggle} from "../molecules/BookmarkRouletteToggle";
 import {ContentFiltersComponent} from "../molecules/ContentFilters";
 import {Settings, Bookmark} from "@mui/icons-material";
 import {ContentFilters} from "../../hooks/useSettings";
 
 interface Props {
-    themeId: string;
-    setThemeId: (id: string) => void;
-    rememberLast: boolean;
-    setRememberLast: (v: boolean) => void;
-    saveHistory: boolean;
-    setSaveHistory: (v: boolean) => void;
-    blurNsfw: boolean;
-    setBlurNsfw: (v: boolean) => void;
-    contentFilters: ContentFilters;
-    setContentFilters: (filters: ContentFilters) => void;
-    bookmarkCount: number;
-    onViewBookmarks: () => void;
+    themeId: string,
+    setThemeId: (id: string) => void,
+    rememberLast: boolean,
+    setRememberLast: (v: boolean) => void,
+    saveHistory: boolean,
+    setSaveHistory: (v: boolean) => void,
+    blurNsfw: boolean,
+    setBlurNsfw: (v: boolean) => void,
+    bookmarkRoulette: boolean,
+    setBookmarkRoulette: (v: boolean) => void,
+    contentFilters: ContentFilters,
+    setContentFilters: (filters: ContentFilters) => void,
+    bookmarkCount: number,
+    onViewBookmarks: () => void,
 }
 
 export const SettingsMenu = ({
@@ -33,10 +36,12 @@ export const SettingsMenu = ({
     setSaveHistory,
     blurNsfw,
     setBlurNsfw,
+    bookmarkRoulette,
+    setBookmarkRoulette,
     contentFilters,
     setContentFilters,
     bookmarkCount,
-    onViewBookmarks
+    onViewBookmarks,
 }: Props) => {
     const [open, setOpen] = useState(false);
     return <>
@@ -79,6 +84,7 @@ export const SettingsMenu = ({
                 <Typography variant="subtitle1" sx={{mb: 1}}>Preferences</Typography>
                 <RememberToggle onChange={setRememberLast} rememberLast={rememberLast}/>
                 <HistoryToggle saveHistory={saveHistory} onChange={setSaveHistory}/>
+                <BookmarkRouletteToggle enabled={bookmarkRoulette} onChange={setBookmarkRoulette}/>
             </Box>
         </Drawer>
     </>;

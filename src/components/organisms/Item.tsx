@@ -15,7 +15,7 @@ import {
 } from "@mui/material";
 import {NavigateBefore, NavigateNext, Web, ThumbUpAlt, ContentCopy, Bookmark, BookmarkBorder, Download} from "@mui/icons-material";
 import {IItemsProps} from "../../App";
-import React, {useState, useMemo, useCallback, memo} from "react";
+import React, {useState, useMemo, useCallback, useEffect, memo} from "react";
 import {Comments} from "../molecules/Comments";
 import {useComments} from "../../hooks/useComments";
 import {HLSVideoPlayer} from "../atoms/HLSVideoPlayer";
@@ -38,9 +38,10 @@ interface ItemProps {
     blurNsfw?: boolean;
     isBookmarked?: boolean;
     onToggleBookmark?: () => void;
+    autoOpenLightbox?: boolean;
 }
 
-export const Item = memo(({data, blurNsfw = false, isBookmarked = false, onToggleBookmark}: ItemProps) => {
+export const Item = memo(({data, blurNsfw = false, isBookmarked = false, onToggleBookmark, autoOpenLightbox = false}: ItemProps) => {
     const [lightboxOpen, setLightboxOpen] = useState<boolean>(false);
     const [currentMediaIndex, setCurrentMediaIndex] = useState<number>(0);
     const [snackbarOpen, setSnackbarOpen] = useState<boolean>(false);
@@ -297,6 +298,12 @@ export const Item = memo(({data, blurNsfw = false, isBookmarked = false, onToggl
     }, [data, videoLink, image_src, fallback_url, getActualGifUrl, getThumbnailUrl]);
 
     const isGallery = data.is_gallery && mediaItems.length > 1;
+
+    useEffect(() => {
+        if (autoOpenLightbox && mediaItems.length > 0) {
+            setLightboxOpen(true);
+        }
+    }, [autoOpenLightbox, mediaItems.length]);
 
     const openLightbox = (index: number) => {
         setCurrentMediaIndex(index);
